@@ -280,7 +280,7 @@ def activate_env(env_name, dependencies, local_repos):
     logging.info("env_name: %s, path: %s", env_name, env["PATH"])
 
     # install testflo to do the benchmarking
-    code, out, err = get_exitcode_stdout_stderr("pip install git+https://github.com/naylor-b/testflo")
+    code, out, err = get_exitcode_stdout_stderr("pip install --install-option=\"--prefix=" + conda_dir.replace("bin",  "envs/"+env_name) + "\" git+https://github.com/naylor-b/testflo")
     if (code != 0):
         raise RuntimeError("Failed to install testflo to", env_name, code, out, err)
 
@@ -288,7 +288,7 @@ def activate_env(env_name, dependencies, local_repos):
     for dependency in dependencies:
         # numpy and scipy are installed when the env is created
         if (not dependency.startswith("python=") and not dependency.startswith("numpy") and not dependency.startswith("scipy")):
-            code, out, err = get_exitcode_stdout_stderr("pip install " + os.path.expanduser(dependency))
+            code, out, err = get_exitcode_stdout_stderr("pip install --install-option=\"--prefix=" + conda_dir.replace("bin",  "envs/"+env_name) + "\" " + os.path.expanduser(dependency))
             if (code != 0):
                 raise RuntimeError("Failed to install", dependency, "to", env_name, code, out, err)
 
