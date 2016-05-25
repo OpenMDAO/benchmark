@@ -13,7 +13,6 @@ import time
 import json
 import csv
 import math
-import datetime
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -540,9 +539,7 @@ class BenchmarkDatabase(object):
 
             fig, a1 = pyplot.subplots()
             a1.get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
-
             x = np.array(range(len(timestamp)))
-
 
             a1.plot(x, elapsed, 'b-')
             a1.set_xlabel('run#')
