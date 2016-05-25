@@ -13,7 +13,6 @@ import time
 import json
 import csv
 import math
-
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -280,7 +279,7 @@ def activate_env(env_name, dependencies, local_repos):
     logging.info("env_name: %s, path: %s", env_name, env["PATH"])
 
     # install testflo to do the benchmarking
-    code, out, err = get_exitcode_stdout_stderr("pip install git+https://github.com/naylor-b/testflo")
+    code, out, err = get_exitcode_stdout_stderr("pip install --install-option=\"--prefix=" + conda_dir.replace("bin",  "envs/"+env_name) + "\" git+https://github.com/naylor-b/testflo")
     if (code != 0):
         raise RuntimeError("Failed to install testflo to", env_name, code, out, err)
 
@@ -288,7 +287,7 @@ def activate_env(env_name, dependencies, local_repos):
     for dependency in dependencies:
         # numpy and scipy are installed when the env is created
         if (not dependency.startswith("python=") and not dependency.startswith("numpy") and not dependency.startswith("scipy")):
-            code, out, err = get_exitcode_stdout_stderr("pip install " + os.path.expanduser(dependency))
+            code, out, err = get_exitcode_stdout_stderr("pip install --install-option=\"--prefix=" + conda_dir.replace("bin",  "envs/"+env_name) + "\" " + os.path.expanduser(dependency))
             if (code != 0):
                 raise RuntimeError("Failed to install", dependency, "to", env_name, code, out, err)
 
@@ -419,7 +418,7 @@ class BenchmarkDatabase(object):
         # benchmark in a run
         self.cursor.execute("CREATE TABLE if not exists BenchmarkData"
                             " (DateTime INT, Spec TEXT, Status TEXT, Elapsed REAL, Memory REAL,"
-                            "  PRIMARY KEY (DateTime, Spec))")
+                            "  LoadAvg1m REAL, LoadAvg5m REAL, LoadAvg15m REAL, PRIMARY KEY (DateTime, Spec))")
 
         # a table containing the versions of all installed dependencies for a run
         self.cursor.execute("CREATE TABLE if not exists InstalledDeps"
@@ -466,7 +465,7 @@ class BenchmarkDatabase(object):
                 logging.info('INSERTING BenchmarkData %s' % str(row))
                 try:
                     spec = row[1].rsplit('/', 1)[1]  # remove path from benchmark file name
-                    self.cursor.execute("INSERT INTO BenchmarkData VALUES(?, ?, ?, ?, ?)", (row[0], spec, row[2], float(row[3]), float(row[4])))
+                    self.cursor.execute("INSERT INTO BenchmarkData VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (row[0], spec, row[2], float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7])))
                     data_added = True
                 except IndexError:
                     print("Invalid benchmark specification found in results:\n %s" % str(row))
@@ -525,6 +524,9 @@ class BenchmarkDatabase(object):
                 data.setdefault('status', []).append(row[2])
                 data.setdefault('elapsed', []).append(row[3])
                 data.setdefault('memory', []).append(row[4])
+                data.setdefault('LoadAvg1m', []).append(row[5])
+                data.setdefault('LoadAvg5m', []).append(row[6])
+                data.setdefault('LoadAvg15m', []).append(row[7])
 
             if not data:
                 logging.warn("No data to plot for %s", spec)
