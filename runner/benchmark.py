@@ -694,8 +694,22 @@ class BenchmarkDatabase(object):
                                   (row[0], spec, row[2], float(row[3]), float(row[4]),
                                    float(row[5]), float(row[6]), float(row[7])))
                         data_added = True
-                    except IndexError:
-                        logging.warning("Invalid benchmark data found in results:\n %s", str(row))
+                    except IndexError as err:
+                        logging.error("*********************************************************")
+                        logging.warning("Invalid benchmark data:\n %s", str(row))
+                        logging.error("*********************************************************")
+                    except sqlite3.IntegrityError as err:
+                        logging.error("*********************************************************")
+                        logging.error("sqlite3.IntegrityError, Error type:\n %s", type(err))
+                        logging.error("Error message:\n %s", str(err))
+                        logging.error("BenchmarkData key: %s %2", (row[0], spec))
+                        logging.error("*********************************************************")
+                    except Exception as err:
+                        logging.error("*********************************************************")
+                        logging.error("Error type:\n %s", type(err))
+                        logging.error("Error message:\n %s", str(err))
+                        logging.error("BenchmarkData key: %s %2", (row[0], spec))
+                        logging.error("*********************************************************")
 
             if data_added:
                 timestamp = row[0]  # row[0] is the timestamp for this set of benchmark data
