@@ -15,7 +15,7 @@
     ],
 
     "conda-forge": [
-        "mpi4py",
+        "mpi4py=*=*mpich*",
         "petsc4py"
     ],
 

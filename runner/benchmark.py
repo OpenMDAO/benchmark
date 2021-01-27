@@ -687,28 +687,28 @@ class BenchmarkDatabase(object):
                 reader = csv.reader(csvfile)
 
                 for row in reader:
+                    row[1] = row[1].rsplit('/', 1)[1]  # remove path from benchmark file name
                     logging.info('INSERTING BenchmarkData %s' % str(row))
                     try:
-                        spec = row[1].rsplit('/', 1)[1]  # remove path from benchmark file name
                         c.execute("INSERT INTO BenchmarkData VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-                                  (row[0], spec, row[2], float(row[3]), float(row[4]),
+                                  (row[0], row[1], row[2], float(row[3]), float(row[4]),
                                    float(row[5]), float(row[6]), float(row[7])))
                         data_added = True
                     except IndexError as err:
                         logging.error("*********************************************************")
-                        logging.warning("Invalid benchmark data:\n %s", str(row))
+                        logging.error("Invalid benchmark data:\n %s", str(row))
                         logging.error("*********************************************************")
                     except sqlite3.IntegrityError as err:
                         logging.error("*********************************************************")
                         logging.error("sqlite3.IntegrityError, Error type:\n %s", type(err))
                         logging.error("Error message:\n %s", str(err))
-                        logging.error("BenchmarkData key: %s %2", (row[0], spec))
+                        logging.error("BenchmarkData key: %s", str(row[:2]))
                         logging.error("*********************************************************")
                     except Exception as err:
                         logging.error("*********************************************************")
                         logging.error("Error type:\n %s", type(err))
                         logging.error("Error message:\n %s", str(err))
-                        logging.error("BenchmarkData key: %s %2", (row[0], spec))
+                        logging.error("BenchmarkData key: %s", str(row[:2]))
                         logging.error("*********************************************************")
 
             if data_added:
