@@ -3,6 +3,7 @@ from __future__ import print_function, division
 
 import traceback
 
+import subprocess
 from subprocess import Popen, PIPE
 
 import sys
@@ -129,13 +130,16 @@ def init_env(project_info):
             env[key] = val
 
 
-def execute_cmd(cmd, shell=False):
+def execute_cmd(cmd, shell=False, combine=False):
     """
     Execute the external command and get its exitcode, stdout and stderr.
     """
     logging.info("> %s", cmd)
     args = shlex.split(cmd)
-    proc = Popen(args, stdout=PIPE, stderr=PIPE, shell=shell, env=env, universal_newlines=True)
+    if combine:
+        proc = Popen(args, stdout=PIPE, stderr=subprocess.STDOUT, shell=shell, env=env, universal_newlines=True)
+    else:
+        proc = Popen(args, stdout=PIPE, stderr=PIPE, shell=shell, env=env, universal_newlines=True)
     out, err = proc.communicate()
 
     rc = proc.returncode
@@ -143,7 +147,7 @@ def execute_cmd(cmd, shell=False):
         logging.info("RC: %d", rc)
     if out.strip():
         logging.info(out)
-    if rc and err.strip():  # disregard inconsequential stderr output
+    if rc and err and err.strip():  # disregard inconsequential stderr output
         logging.info("STDERR:\n%s", err)
 
     return rc, out, err
@@ -313,9 +317,9 @@ def clone_repo(repository, branch):
         hg_clone_cmd = "hg clone " + repository
 
     repo_type = repo_types.get(repository)
-    if repo_type is "git":
+    if repo_type == "git":
         code, out, err = execute_cmd(git_clone_cmd)
-    elif repo_type is "hg":
+    elif repo_type == "hg":
         code, out, err = execute_cmd(hg_clone_cmd)
     else:
         code, out, err = execute_cmd(git_clone_cmd)
@@ -342,16 +346,16 @@ def get_current_commit(repository):
 
     # pull latest commit from desired branch and get the commit ID
     repo_type = repo_types.get(repository)
-    if repo_type is "git":
+    if repo_type == "git":
         code, out, err = execute_cmd(git_pull)
         code, out, err = execute_cmd(git_commit)
-    elif repo_type is "hg":
+    elif repo_type == "hg":
         code, out, err = execute_cmd(hg_pull)
         code, out, err = execute_cmd(hg_merge)
         code, out, err = execute_cmd(hg_commit)
     else:
         code, out, err = execute_cmd(hg_pull)
-        if (code is 0):
+        if (code == 0):
             code, out, err = execute_cmd(hg_merge)
             code, out, err = execute_cmd(hg_commit)
         else:
@@ -1170,12 +1174,12 @@ class BenchmarkRunner(object):
         triggers = project.get("triggers", [])
 
         for trigger in triggers + [project["repository"]]:
-            trigger = os.path.expanduser(trigger)
-            # for the project repository, we may want a particular branch
-            if trigger is project["repository"]:
-                branch = project.get("branch", None)
+            if '#' in trigger:
+                trigger, branch = trigger.split('#')
             else:
                 branch = None
+            trigger = os.path.expanduser(trigger)
+
             # check each trigger for any update since last run
             with repo(trigger, branch):
                 msg = 'checking trigger ' + trigger + ' ' + branch if branch else ''
@@ -1235,38 +1239,55 @@ class BenchmarkRunner(object):
 
                 # create script & run (in the repo directory)
                 with cd(repo_dir):
-                    script = RunScript(run_name, project, unit_tests, keep_env)
-                    script.execute()
-
                     repo_name = project["repository"].split('/')[-1]
+                    if '#' in repo_name:
+                        repo_name = repo_name.split('#')[0]
 
-                    # check for failed unit test
-                    if unit_tests:
-                        test_log = os.path.join(repo_name, "%s.log" % run_name)
-                        logging.info("unit test results file: %s", test_log)
-                        for line in open(test_log):
-                            if line.startswith("Failed:"):
-                                logging.info("test failures (%s): %s", line.split()[1], line)
-                                if line.split()[1] != "0":
-                                    write_json(fail_file, current_commits)
-                                    self.slack.post_message("%s However, unit tests failed... <!channel>" % trigger_msg)
-                                    self.slack.post_file(test_log,
-                                                         "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
-                                    good_commits = False
+                    script = project.get("script")
+                    if script:
+                        rc, out, err = execute_cmd(script, shell=True, combine=True)
+                        if rc:
+                            write_json(fail_file, current_commits)
+                            self.slack.post_message("%s However, testing failed... <!channel>" % trigger_msg)
+                        else:
+                            self.slack.post_message("%s Testing was successful." % trigger_msg)
+                        if out:
+                            test_log = os.path.join(repo_name, "%s.txt" % run_name)
+                            with open(test_log, "w") as f:
+                                f.write(out)
+                            self.slack.post_file(test_log,
+                                                 "\"%s : See attached output file.\"" % self.project["name"])
+                    else:
+                        script = RunScript(run_name, project, unit_tests, keep_env)
+                        script.execute()
 
-                    # check for failed benchmarks
-                    if good_commits or not unit_tests:
-                        benchmark_log = os.path.join(repo_name, "%s-bm.log" % run_name)
-                        logging.info("benchmark results file: %s", benchmark_log)
-                        for line in open(benchmark_log):
-                            if line.startswith("Failed:"):
-                                logging.info("benchmark failures (%s): %s", line.split()[1], line)
-                                if line.split()[1] != "0":
-                                    write_json(fail_file, current_commits)
-                                    self.slack.post_message("%s However, benchmarks failed... <!channel>" % trigger_msg)
-                                    self.slack.post_file(benchmark_log,
-                                                         "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
-                                    good_commits = False
+                        # check for failed unit test
+                        if unit_tests:
+                            test_log = os.path.join(repo_name, "%s.log" % run_name)
+                            logging.info("unit test results file: %s", test_log)
+                            for line in open(test_log):
+                                if line.startswith("Failed:"):
+                                    logging.info("test failures (%s): %s", line.split()[1], line)
+                                    if line.split()[1] != "0":
+                                        write_json(fail_file, current_commits)
+                                        self.slack.post_message("%s However, unit tests failed... <!channel>" % trigger_msg)
+                                        self.slack.post_file(test_log,
+                                                             "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
+                                        good_commits = False
+
+                        # check for failed benchmarks
+                        if good_commits or not unit_tests:
+                            benchmark_log = os.path.join(repo_name, "%s-bm.log" % run_name)
+                            logging.info("benchmark results file: %s", benchmark_log)
+                            for line in open(benchmark_log):
+                                if line.startswith("Failed:"):
+                                    logging.info("benchmark failures (%s): %s", line.split()[1], line)
+                                    if line.split()[1] != "0":
+                                        write_json(fail_file, current_commits)
+                                        self.slack.post_message("%s However, benchmarks failed... <!channel>" % trigger_msg)
+                                        self.slack.post_file(benchmark_log,
+                                                             "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
+                                        good_commits = False
 
                     if good_commits:
                         # get list of installed dependencies
@@ -1280,10 +1301,15 @@ class BenchmarkRunner(object):
 
                         # update database with benchmark resuls
                         csv_file = os.path.join(repo_name, "%s.csv" % run_name)
-                        db.add_benchmark_data(current_commits, csv_file, installed_deps)
-                        self.post_results(trigger_msg)
-                        if conf["remove_csv"]:
-                            os.remove(csv_file)
+                        if os.path.exists(csv_file):
+                            db.add_benchmark_data(current_commits, csv_file, installed_deps)
+                            self.post_results(trigger_msg)
+                            if conf["remove_csv"]:
+                                os.remove(csv_file)
+                        else:
+                            # no benchmarks, just record the commits that passed testing
+                            timestamp = time.time()
+                            db.update_commits(current_commits, timestamp)
 
                 if good_commits:
                     # if benchmarks didn't fail but there are no commits in database, then
