@@ -1,0 +1,13 @@
+{
+    "repository": "git@github.com:OptimalDesignLab/mach#python-wrapper-dev",
+
+    "triggers": [
+        "git@github.com:tuckerbabcock/EngSketchPad#beta",
+        "git@github.com:tuckerbabcock/core#egads-dev",
+        "git@github.com:mfem/mfem#odl",
+        "git@github.com:rjhogan/Adept-2",
+        "git@github.com:openmdao/OpenMDAO"
+    ],
+
+    "script": "mach_test.sh"
+}
