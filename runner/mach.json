@@ -9,5 +9,10 @@
         "git@github.com:openmdao/OpenMDAO"
     ],
 
-    "script": "mach_test.sh"
+    "script": "mach_test.sh",
+
+    "notify": [
+        "U02BT9BC5",
+        "U015BG2A78S"
+    ]
 }
