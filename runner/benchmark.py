@@ -528,10 +528,13 @@ class Slack(object):
         self.cfg = cfg
         self.ca = ca
 
-    def post_message(self, message):
+    def post_message(self, message, notify=[]):
         """
         post a simple message
         """
+        for n in notify:
+            message += " <@%s>" % n
+
         payload = {
             "attachments": [
                 {
@@ -1243,12 +1246,14 @@ class BenchmarkRunner(object):
                     if '#' in repo_name:
                         repo_name = repo_name.split('#')[0]
 
+                    notify = project.get("notify", [])
+
                     script = project.get("script")
                     if script:
                         rc, out, err = execute_cmd(script, shell=True, combine=True)
                         if rc:
-                            write_json(fail_file, current_commits)
-                            self.slack.post_message("%s However, testing failed... <!channel>" % trigger_msg)
+                            good_commits = False
+                            self.slack.post_message("%s However, testing failed... <!channel>" % trigger_msg, notify=notify)
                         else:
                             self.slack.post_message("%s Testing was successful." % trigger_msg)
                         if out:
@@ -1269,8 +1274,7 @@ class BenchmarkRunner(object):
                                 if line.startswith("Failed:"):
                                     logging.info("test failures (%s): %s", line.split()[1], line)
                                     if line.split()[1] != "0":
-                                        write_json(fail_file, current_commits)
-                                        self.slack.post_message("%s However, unit tests failed... <!channel>" % trigger_msg)
+                                        self.slack.post_message("%s However, unit tests failed... <!channel>" % trigger_msg, notify=notify)
                                         self.slack.post_file(test_log,
                                                              "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
                                         good_commits = False
@@ -1283,8 +1287,7 @@ class BenchmarkRunner(object):
                                 if line.startswith("Failed:"):
                                     logging.info("benchmark failures (%s): %s", line.split()[1], line)
                                     if line.split()[1] != "0":
-                                        write_json(fail_file, current_commits)
-                                        self.slack.post_message("%s However, benchmarks failed... <!channel>" % trigger_msg)
+                                        self.slack.post_message("%s However, benchmarks failed... <!channel>" % trigger_msg, notify=notify)
                                         self.slack.post_file(benchmark_log,
                                                              "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
                                         good_commits = False
@@ -1310,6 +1313,9 @@ class BenchmarkRunner(object):
                             # no benchmarks, just record the commits that passed testing
                             timestamp = time.time()
                             db.update_commits(current_commits, timestamp)
+                    else:
+                        write_json(fail_file, current_commits)
+
 
                 if good_commits:
                     # if benchmarks didn't fail but there are no commits in database, then

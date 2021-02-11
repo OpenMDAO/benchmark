@@ -12,9 +12,6 @@
         "scipy"
     ],
 
-    "anaconda": [
-    ],
-
     "conda-forge": [
         "mpi4py=*=*mpich*",
         "petsc4py"

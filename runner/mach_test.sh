@@ -1,4 +1,10 @@
 #
+# set verbose, exit on error
+#
+set -v
+set -e
+
+#
 # set working directory
 #
 export WD=$PWD
@@ -25,12 +31,6 @@ if ! conda env list | grep mach_test; then
 else
   conda activate mach_test
 fi
-
-#
-# set verbose, exit on error
-#
-set -v
-set -e
 
 #
 # build ESP
