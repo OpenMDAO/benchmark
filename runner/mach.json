@@ -12,6 +12,7 @@
     "script": "mach_test.sh",
 
     "notify": [
-        "U015BG2A78S"
+        "U015BG2A78S",
+        "U047V3GV6"
     ]
 }

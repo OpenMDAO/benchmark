@@ -201,5 +201,5 @@ pip install --upgrade -e .
 conda list
 
 # disabled for now
-# testflo -vs mach/test
+#testflo --timeout=120 -vs mach/test
 
