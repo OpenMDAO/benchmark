@@ -1,3 +1,5 @@
+#!/bin/bash --login
+
 #
 # set verbose, exit on error
 #
