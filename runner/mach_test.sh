@@ -87,6 +87,7 @@ cmake3 .. \\
   -DBUILD_SHARED_LIBS=False \\
   -DENABLE_ZOLTAN=OFF \\
   -DENABLE_EGADS=ON \\
+  -DPUMI_USE_EGADSLITE=OFF \\
   -DEGADS_DIR="\$ESP_ROOT" \\
   -DCMAKE_INSTALL_PREFIX=\$PWD/install
 EOF
@@ -178,7 +179,8 @@ source mach_config.sh
 set -e
 source mach_config.sh
 make -j
-make tests -j
+make build_tests -j
+ctest --output-on-failure
 make install
 
 #
