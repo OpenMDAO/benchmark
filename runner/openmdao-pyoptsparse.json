@@ -1,0 +1,30 @@
+{
+    "repository": "git@github.com:openmdao/OpenMDAO",
+
+    "triggers": [
+        "git@github.com:mdolab/pyoptsparse/releases"
+    ],
+
+    "extras": "[all]",
+
+    "conda": [
+        "python=3",
+        "numpy",
+        "scipy"
+    ],
+
+    "conda-forge": [
+        "mpi4py",
+        "petsc4py"
+    ],
+
+    "preinstall": [
+        "export LATEST_URL=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/mdolab/pyoptsparse/releases/latest`",
+        "export LATEST_VER=`echo $LATEST_URL | awk '{split($0,a,\"/tag/\"); print a[2]}'`",
+        "echo ~/dev/build_pyoptsparse/build_pyoptsparse.sh -b $LATEST_VER -p `pwd` -s ~/dev/snopt7/src",
+        "~/dev/build_pyoptsparse/build_pyoptsparse.sh -b $LATEST_VER -p `pwd` -s ~/dev/snopt7/src",
+        "export IPOPT_INC=`pwd`/include/coin-or",
+        "export IPOPT_LIB=`pwd`/lib",
+        "export LD_LIBRARY_PATH=`pwd`/lib"
+    ]
+}
