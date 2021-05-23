@@ -365,6 +365,39 @@ def get_current_commit(repository):
     return out.strip()   # TODO: strip the old commit IDs in the database as well
 
 
+def get_tag_info():
+    """
+    Return the latest git tag, meaning, highest numerically, as a string, and the associated commit ID.
+    """
+    # using a pattern to only grab tags that are in version format "X.Y.Z"
+    git_versions = subprocess.Popen(['git', 'tag', '-l', '*.*.*'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cmd_out, cmd_err = git_versions.communicate()
+
+    cmd_out = cmd_out.decode('utf8')
+    # take the output of git tag -l *.*.*, and split it from one string into a list.
+    version_tags = cmd_out.split()
+
+    if not version_tags:
+        raise Exception('No tags found in repository')
+
+    # use sort to put the versions list in order from lowest to highest
+    version_tags.sort(key=lambda s: [u for u in s.split('.')])
+
+    logging.info('sorted version tags: %s', version_tags)
+
+    # grab the highest tag that this repo knows about
+    latest_tag = version_tags[-1]
+
+    cmd = subprocess.Popen(['git', 'rev-list', '-1', latest_tag, '-s'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cmd_out, cmd_err = cmd.communicate()
+
+    cmd_out = cmd_out.decode('utf8')
+    commit_id = cmd_out.strip()
+
+    logging.info('latest_tag: %s, commit_id: %s', latest_tag, commit_id)
+    return latest_tag, commit_id
+
+
 #
 # worker classes
 #
@@ -433,23 +466,32 @@ class RunScript(object):
                 script.append("pip install testflo")
                 break
 
+        # run any pre-install commands
+        if "preinstall" in project:
+            script.append("\n## Run pre-install commands")
+            for cmd in project["preinstall"]:
+                script.append(os.path.expanduser(cmd))
+
         # install dependencies
-        script.append("\n## Install dependencies")
-        for dependency in project["dependencies"]:
-            if dependency.startswith("~") or dependency.startswith("/"):
-                script.append("cd %s" % os.path.expanduser(dependency))
-                script.append([
-                    "if test -f requirements.txt; then",
-                    "    pip install -r requirements.txt",
-                    "fi"
-                ])
-                script.append("pip install .")
-                script.append("cd -")
-            else:
-                script.append("pip install %s" % dependency)
+        if "dependencies" in project:
+            script.append("\n## Install dependencies")
+            for dependency in project["dependencies"]:
+                if dependency.startswith("~") or dependency.startswith("/"):
+                    script.append("cd %s" % os.path.expanduser(dependency))
+                    script.append([
+                        "if test -f requirements.txt; then",
+                        "    pip install -r requirements.txt",
+                        "fi"
+                    ])
+                    script.append("pip install .")
+                    script.append("cd -")
+                else:
+                    script.append("pip install %s" % dependency)
 
         # install triggers
         for trigger in project["triggers"]:
+            if trigger.endswith("/releases"):
+                trigger = trigger[:-9]
             script.append("\n## Install trigger: %s" % trigger)
             script.append("cd %s" % trigger.split('/')[-1])
             script.append("if test -f requirements.txt; then")
@@ -457,12 +499,6 @@ class RunScript(object):
             script.append("fi")
             script.append("pip install .")
             script.append("cd -")
-
-        # run any pre-install commands (in the conda environment & repo dir)
-        if "preinstall" in project:
-            script.append("\n## Run pre-install commands")
-            for cmd in project["preinstall"]:
-                script.append(os.path.expanduser(cmd))
 
         # install repository
         repository = project["repository"]
@@ -1182,23 +1218,36 @@ class BenchmarkRunner(object):
         triggers = project.get("triggers", [])
 
         for trigger in triggers + [project["repository"]]:
+            if trigger.endswith("/releases"):
+                check_release = True
+                trigger = trigger[:-9]
+            else:
+                check_release = False
+
             if '#' in trigger:
                 trigger, branch = trigger.split('#')
             else:
                 branch = None
+
             trigger = os.path.expanduser(trigger)
 
             # check each trigger for any update since last run
             with repo(trigger, branch):
-                msg = 'checking trigger ' + trigger + ' ' + branch if branch else ''
-                logging.info(msg)
+                logging.info('checking trigger ' + trigger + ' ' + branch if branch else '')
                 current_commits[trigger] = get_current_commit(trigger)
                 logging.info("Curr CommitID: %s", current_commits[trigger])
                 last_commit = str(db.get_last_commit(trigger))
                 logging.info("Last CommitID: %s", last_commit)
                 if (last_commit != current_commits[trigger]):
-                    logging.info("There has been an update to %s\n", trigger)
-                    triggered_by.append(trigger)
+                    if check_release:
+                        # new commit, but is it a release?
+                        release_tag, release_commit = get_tag_info()
+                        if current_commits[trigger] == release_commit:
+                            logging.info("There has been a new release for %s\n", trigger)
+                            triggered_by.append(trigger)
+                    else:
+                        logging.info("There has been an update to %s\n", trigger)
+                        triggered_by.append(trigger)
 
         # if new benchmark run is needed:
         # - create and activate a clean env
