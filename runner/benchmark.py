@@ -590,6 +590,11 @@ class Slack(object):
         """
         post a file to slack
         """
+        if not "channel" in self.cfg or not "token" in self.cfg:
+            msg = "'channel' and/or 'token' not found.. Cannot post file '%s' (%s) to slack" % (filename, title)
+            logging.warning(msg)
+            return -1
+
         cmd = "curl -s "
 
         cmd += "-F file=@%s -F title=%s -F filename=%s -F channels=%s -F token=%s " % \
