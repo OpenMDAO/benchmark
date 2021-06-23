@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 from datetime import datetime
+import traceback
 
 import tornado.ioloop
 import tornado.web
@@ -39,15 +40,17 @@ class ProjectHandler(tornado.web.RequestHandler):
                 self.finish("<html><body>%s is not a valid project</body></html>" % project)
             else:
                 db = BenchmarkDatabase(os.path.join(database_dir, project))
+                cursor = db.connection.cursor()
                 specs = db.get_specs()
                 dates = []
                 for spec in specs:
-                    for row in db.cursor.execute('SELECT DateTime FROM BenchmarkData WHERE Spec==? ORDER BY DateTime DESC LIMIT 1', (spec,)):
+                    for row in cursor.execute('SELECT DateTime FROM BenchmarkData WHERE Spec==? ORDER BY DateTime DESC LIMIT 1', (spec,)):
                         dates.append(row[0])
 
                 self.render("proj_template.html", title=project, spec=specs, date=date, dates=dates)
 
         except Exception as err:
+            traceback.print_exc()
             return err
 
 
@@ -64,9 +67,10 @@ class SpecHandler(tornado.web.RequestHandler):
                 self.finish("<html><body>%s is not a valid project</body></html>" % project)
             else:
                 db = BenchmarkDatabase(os.path.join(database_dir, project))
+                cursor = db.connection.cursor()
 
                 data = {}
-                for row in db.cursor.execute('SELECT * FROM BenchmarkData WHERE Spec=? and Status=="OK" ORDER BY DateTime', (spec,)):
+                for row in cursor.execute('SELECT * FROM BenchmarkData WHERE Spec=? and Status=="OK" ORDER BY DateTime', (spec,)):
                     data.setdefault("timestamp", []).append(row[0])
                     data.setdefault("status", []).append(row[2])
                     data.setdefault("elapsed", []).append(row[3])
@@ -78,7 +82,7 @@ class SpecHandler(tornado.web.RequestHandler):
                 commits = {}
                 for timestamp in data["timestamp"]:
                     tmp_list = []
-                    for row in db.cursor.execute('SELECT * FROM Commits WHERE DateTime==? ORDER BY DateTime', (timestamp,)):
+                    for row in cursor.execute('SELECT * FROM Commits WHERE DateTime==? ORDER BY DateTime', (timestamp,)):
                         # row[0] is timestamp, row[1] is trigger, row[2] is commit
                         prefix = ""
                         name = row[1].rsplit('/', 1)[1]
@@ -101,6 +105,7 @@ class SpecHandler(tornado.web.RequestHandler):
                     self.render("spec_template.html", title=bench_title, items=data)
 
         except Exception as err:
+            traceback.print_exc()
             return err
 
 
