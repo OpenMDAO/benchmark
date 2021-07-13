@@ -157,7 +157,7 @@ if [ ! -d "mach" ]; then
 fi
 
 cd mach
-git checkout python-wrapper-dev
+git checkout dev
 git pull
 
 if [ ! -d "build" ]; then

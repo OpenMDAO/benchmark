@@ -1,5 +1,5 @@
 {
-    "repository": "git@github.com:OptimalDesignLab/mach#python-wrapper-dev",
+    "repository": "git@github.com:OptimalDesignLab/mach#dev",
 
     "triggers": [
         "git@github.com:tuckerbabcock/EngSketchPad#beta",
