@@ -30,11 +30,14 @@ if ! conda env list | grep mach_test; then
   conda create --yes -n mach_test python=3 cython swig
   conda activate mach_test
   pip install mkdocs
+  export LDFLAGS+=" -shared"
   env MPICC=`which mpicc` pip install mpi4py
   env MPICC=`which mpicc` pip install petsc4py
+  unset LDFLAGS
 else
   conda activate mach_test
 fi
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/"
 
 #
 # build ESP
