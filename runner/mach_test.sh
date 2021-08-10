@@ -23,11 +23,9 @@ export CPATH=/hx/software/apps/openmpi/4.0.5/gcc8/include/
 # need a python env with mpi4py and mkdocs 
 #
 eval "$(/anaconda3/bin/conda shell.bash hook)"
-
 if conda env list | grep mach_test; then
     conda env remove -n mach_test
 fi
-
 if ! conda env list | grep mach_test; then
   conda create --yes -n mach_test python=3 cython swig
   conda activate mach_test
@@ -39,9 +37,7 @@ if ! conda env list | grep mach_test; then
 else
   conda activate mach_test
 fi
-
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/"
-
 
 #
 # build ESP
