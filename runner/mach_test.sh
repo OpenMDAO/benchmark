@@ -18,6 +18,7 @@ module purge
 module load gcc/8.1.0 openmpi/4.0.5 hypre/2.20.0
 module load gnu_build/20210203
 export CPATH=/hx/software/apps/openmpi/4.0.5/gcc8/include/
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/hx/software/apps/openmpi/4.0.5/gcc8/lib/"
 
 #
 # need a python env with mpi4py and mkdocs 
@@ -30,11 +31,16 @@ if ! conda env list | grep mach_test; then
   conda create --yes -n mach_test python=3 cython swig
   conda activate mach_test
   pip install mkdocs
+  export LDFLAGS+=" -shared"
   env MPICC=`which mpicc` pip install mpi4py
   env MPICC=`which mpicc` pip install petsc4py
+  unset LDFLAGS
 else
   conda activate mach_test
 fi
+
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/"
+
 
 #
 # build ESP
@@ -62,6 +68,7 @@ make
 #
 # build PUMI
 #
+#unset LD_LIBRARY_PATH
 cd $WD
 if [ ! -d "core" ]; then
   git clone https://github.com/tuckerbabcock/core
