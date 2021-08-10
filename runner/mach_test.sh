@@ -18,7 +18,6 @@ module purge
 module load gcc/8.1.0 openmpi/4.0.5 hypre/2.20.0
 module load gnu_build/20210203
 export CPATH=/hx/software/apps/openmpi/4.0.5/gcc8/include/
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/hx/software/apps/openmpi/4.0.5/gcc8/lib/"
 
 #
 # need a python env with mpi4py and mkdocs 
