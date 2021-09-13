@@ -5,7 +5,9 @@
         "git@github.com:mdolab/pyoptsparse/releases"
     ],
 
-    "extras": "[all]",
+    "preinstall": [
+        "module load mvapich2/2.3.1/gnu/4.8.5"
+    ],
 
     "conda": [
         "python=3",
@@ -18,7 +20,9 @@
         "petsc4py"
     ],
 
-    "preinstall": [
+    "extras": "[all]",
+
+    "postinstall": [
         "export LATEST_URL=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/mdolab/pyoptsparse/releases/latest`",
         "export LATEST_VER=`echo $LATEST_URL | awk '{split($0,a,\"/tag/\"); print a[2]}'`",
         "echo ~/dev/build_pyoptsparse/build_pyoptsparse.sh -b $LATEST_VER -p `pwd` -s ~/dev/snopt7/src",
