@@ -6,7 +6,9 @@
         "git@github.com:openmdao/MBI"
     ],
 
-    "extras": "[all]",
+    "preinstall": [
+        "module load mvapich2/2.3.1/gnu/4.8.5"
+    ],
 
     "conda": [
         "python=3",
@@ -26,7 +28,9 @@
         "sqlitedict"
     ],
 
-    "preinstall": [
+    "extras": "[all]",
+
+    "postinstall": [
         "~/dev/build_pyoptsparse/build_pyoptsparse.sh -p `pwd` -s ~/dev/snopt7/src",
         "export IPOPT_INC=`pwd`/include/coin-or",
         "export IPOPT_LIB=`pwd`/lib",

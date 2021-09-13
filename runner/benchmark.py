@@ -419,13 +419,22 @@ class RunScript(object):
 
         script.append("\nRUN_NAME=%s" % run_name)
 
+        # run any pre-install commands
+        if "preinstall" in project:
+            script.append("\n## Run pre-install commands")
+            for cmd in project["preinstall"]:
+                script.append(os.path.expanduser(cmd))
+
+        # create conda env with required packages
         script.append("\n## Create Conda environment")
 
-        script.append("\n\ncat ~/.condarc")
+        script.append("\ncat ~/.condarc")
+
+        script.append("\nconda deactivate")
+        script.append("\nconda deactivate")
 
         conda_spec = project["conda"]
 
-        # create conda env with required packages
         cmd = "conda create -y -q -n $RUN_NAME "
         conda_pkgs = conda_spec + [
             "git",              # for cloning git repos
@@ -447,13 +456,17 @@ class RunScript(object):
 
         # install anaconda dependencies
         if "anaconda" in project:
+            pkgs = []
             for spec in project["anaconda"]:
-                script.append("conda install -c anaconda %s --yes" % spec)
+                pkgs.append(spec)
+            script.append("conda install -c anaconda %s --yes" % " ".join(pkgs))
 
         # install conda-forge dependencies
         if "conda-forge" in project:
+            pkgs = []
             for spec in project["conda-forge"]:
-                script.append("conda install -c conda-forge %s --yes" % spec)
+                pkgs.append(spec)
+            script.append("conda install -c conda-forge %s --yes" % " ".join(pkgs))
 
         # install the proper version of testflo to do the benchmarking
         for spec in conda_spec:
@@ -465,12 +478,6 @@ class RunScript(object):
                 # self.install("testflo", options="")
                 script.append("pip install testflo")
                 break
-
-        # run any pre-install commands
-        if "preinstall" in project:
-            script.append("\n## Run pre-install commands")
-            for cmd in project["preinstall"]:
-                script.append(os.path.expanduser(cmd))
 
         # install dependencies
         if "dependencies" in project:
