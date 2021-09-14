@@ -985,8 +985,8 @@ class BenchmarkDatabase(object):
                 pyplot.savefig(filename)
                 code, out, err = execute_cmd("chmod 644 " + filename)
 
-        except ImportError:
-            logging.info("numpy and matplotlib are required to plot benchmark data.")
+        except ImportError as err:
+            logging.info("numpy and matplotlib are required to plot benchmark data: %s" % err)
         except err:
             raise err
 
@@ -1095,8 +1095,8 @@ class BenchmarkDatabase(object):
 
                 pyplot.close(fig)
 
-        except ImportError:
-            logging.info("numpy and matplotlib are required to plot benchmark data.")
+        except ImportError as err:
+            logging.info("numpy and matplotlib are required to plot benchmark data: %s" % err)
 
         return filenames
 
