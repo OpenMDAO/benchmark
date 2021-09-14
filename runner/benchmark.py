@@ -172,7 +172,7 @@ def upload(files, args_dest):
     dest = args_dest.split()[-1]
     cmd = "scp %s %s %s" % (" ".join(args), " ".join(files), dest)
     code, out, err = execute_cmd(cmd)
-    return code
+    return code, out, err
 
 
 def init_logging():
@@ -1406,7 +1406,7 @@ class BenchmarkRunner(object):
         if conf["plot_history"]:
             summary_plots = db.plot_benchmarks(save=True, show=False)
             if conf.get("images") and summary_plots:
-                rc = upload(summary_plots, conf["images"]["upload"])
+                rc, _, _ = upload(summary_plots, conf["images"]["upload"])
                 if rc == 0:
                     image_url = conf["images"]["url"]
 
