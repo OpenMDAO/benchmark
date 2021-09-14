@@ -164,11 +164,13 @@ def remove_dir(dirname):
         code, out, err = execute_cmd(remove_cmd)
 
 
-def upload(files, dest):
+def upload(files, args_dest):
     """
     upload files to destination via scp
     """
-    cmd = "scp %s %s" % (" ".join(files), dest)
+    args = args_dest.split()[:-1]
+    dest = args_dest.split()[-1]
+    cmd = "scp %s %s %s" % (" ".join(args), " ".join(files), dest)
     code, out, err = execute_cmd(cmd)
     return code
 
@@ -1415,6 +1417,7 @@ class BenchmarkRunner(object):
 
             # post summary plots
             if summary_plots:
+                print("image_url:", image_url) 
                 for plot_file in summary_plots:
                     self.slack.post_image("", "/".join([image_url, plot_file]))
             else:
