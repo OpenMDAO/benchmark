@@ -1415,7 +1415,7 @@ class BenchmarkRunner(object):
         # if slack info is provided, post message and plots to slack
         if self.slack:
             # post message that benchmarks were run
-            self.slack.post_message(trigger_msg)
+            self.slack.post_message(trigger_msg + "\nBenchmarking was successful.")
 
             # post summary plots
             if summary_plots and image_url:
