@@ -1337,10 +1337,11 @@ class BenchmarkRunner(object):
                                 if line.startswith("Failed:"):
                                     logging.info("test failures (%s): %s", line.split()[1], line)
                                     if line.split()[1] != "0":
-                                        self.slack.post_message("%s However, unit tests failed... <!channel>" % trigger_msg, notify=notify)
-                                        self.slack.post_file(test_log,
-                                                             "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
                                         good_commits = False
+                                        if self.slack:
+                                            self.slack.post_message("%s However, unit tests failed... <!channel>" % trigger_msg, notify=notify)
+                                            self.slack.post_file(test_log,
+                                                                 "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
 
                         # check for failed benchmarks
                         if good_commits or not unit_tests:
@@ -1350,10 +1351,11 @@ class BenchmarkRunner(object):
                                 if line.startswith("Failed:"):
                                     logging.info("benchmark failures (%s): %s", line.split()[1], line)
                                     if line.split()[1] != "0":
-                                        self.slack.post_message("%s However, benchmarks failed... <!channel>" % trigger_msg, notify=notify)
-                                        self.slack.post_file(benchmark_log,
-                                                             "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
                                         good_commits = False
+                                        if self.slack:
+                                            self.slack.post_message("%s However, benchmarks failed... <!channel>" % trigger_msg, notify=notify)
+                                            self.slack.post_file(benchmark_log,
+                                                                 "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
 
                     if good_commits:
                         # get list of installed dependencies
@@ -1416,8 +1418,7 @@ class BenchmarkRunner(object):
             self.slack.post_message(trigger_msg)
 
             # post summary plots
-            if summary_plots:
-                print("image_url:", image_url) 
+            if summary_plots and image_url:
                 for plot_file in summary_plots:
                     self.slack.post_image("", "/".join([image_url, plot_file]))
             else:
