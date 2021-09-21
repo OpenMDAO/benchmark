@@ -20,9 +20,12 @@ module load gnu_build/20210203
 export CPATH=/hx/software/apps/openmpi/4.0.5/gcc8/include/
 
 #
-# need a python env with mpi4py and mkdocs 
+# need a python environment with mpi4py and mkdocs 
 #
-eval "$(/anaconda3/bin/conda shell.bash hook)"
+conda deactivate
+conda deactivate
+source /mdao/w/anaconda3/etc/profile.d/conda.sh
+
 if conda env list | grep mach_test; then
     conda env remove -n mach_test
 fi

@@ -164,13 +164,15 @@ def remove_dir(dirname):
         code, out, err = execute_cmd(remove_cmd)
 
 
-def upload(files, dest):
+def upload(files, args_dest):
     """
     upload files to destination via scp
     """
-    cmd = "scp %s %s" % (" ".join(files), dest)
+    args = args_dest.split()[:-1]
+    dest = args_dest.split()[-1]
+    cmd = "scp %s %s %s" % (" ".join(args), " ".join(files), dest)
     code, out, err = execute_cmd(cmd)
-    return code
+    return code, out, err
 
 
 def init_logging():
@@ -983,8 +985,8 @@ class BenchmarkDatabase(object):
                 pyplot.savefig(filename)
                 code, out, err = execute_cmd("chmod 644 " + filename)
 
-        except ImportError:
-            logging.info("numpy and matplotlib are required to plot benchmark data.")
+        except ImportError as err:
+            logging.info("numpy and matplotlib are required to plot benchmark data: %s" % err)
         except err:
             raise err
 
@@ -1093,8 +1095,8 @@ class BenchmarkDatabase(object):
 
                 pyplot.close(fig)
 
-        except ImportError:
-            logging.info("numpy and matplotlib are required to plot benchmark data.")
+        except ImportError as err:
+            logging.info("numpy and matplotlib are required to plot benchmark data: %s" % err)
 
         return filenames
 
@@ -1335,10 +1337,11 @@ class BenchmarkRunner(object):
                                 if line.startswith("Failed:"):
                                     logging.info("test failures (%s): %s", line.split()[1], line)
                                     if line.split()[1] != "0":
-                                        self.slack.post_message("%s However, unit tests failed... <!channel>" % trigger_msg, notify=notify)
-                                        self.slack.post_file(test_log,
-                                                             "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
                                         good_commits = False
+                                        if self.slack:
+                                            self.slack.post_message("%s However, unit tests failed... <!channel>" % trigger_msg, notify=notify)
+                                            self.slack.post_file(test_log,
+                                                                 "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
 
                         # check for failed benchmarks
                         if good_commits or not unit_tests:
@@ -1348,10 +1351,11 @@ class BenchmarkRunner(object):
                                 if line.startswith("Failed:"):
                                     logging.info("benchmark failures (%s): %s", line.split()[1], line)
                                     if line.split()[1] != "0":
-                                        self.slack.post_message("%s However, benchmarks failed... <!channel>" % trigger_msg, notify=notify)
-                                        self.slack.post_file(benchmark_log,
-                                                             "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
                                         good_commits = False
+                                        if self.slack:
+                                            self.slack.post_message("%s However, benchmarks failed... <!channel>" % trigger_msg, notify=notify)
+                                            self.slack.post_file(benchmark_log,
+                                                                 "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
 
                     if good_commits:
                         # get list of installed dependencies
@@ -1404,17 +1408,17 @@ class BenchmarkRunner(object):
         if conf["plot_history"]:
             summary_plots = db.plot_benchmarks(save=True, show=False)
             if conf.get("images") and summary_plots:
-                rc = upload(summary_plots, conf["images"]["upload"])
+                rc, _, _ = upload(summary_plots, conf["images"]["upload"])
                 if rc == 0:
                     image_url = conf["images"]["url"]
 
         # if slack info is provided, post message and plots to slack
         if self.slack:
             # post message that benchmarks were run
-            self.slack.post_message(trigger_msg)
+            self.slack.post_message(trigger_msg + "\nBenchmarking was successful.")
 
             # post summary plots
-            if summary_plots:
+            if summary_plots and image_url:
                 for plot_file in summary_plots:
                     self.slack.post_image("", "/".join([image_url, plot_file]))
             else:
