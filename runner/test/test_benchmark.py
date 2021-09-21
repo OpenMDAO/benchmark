@@ -21,6 +21,35 @@ class TestCase(unittest.TestCase):
     def tearDown(self):
         chdir(self.startdir)
 
+    def test_slack_post_file(self):
+        from benchmark import conf, read_json, BenchmarkRunner
+
+        conf.update(read_json("benchmark.cfg"))
+
+
+        project_name = 'CADRE'
+        try:
+            project_info = read_json("%s.json" % project_name)
+            project_info["name"] = project_name
+        except:
+            raise unittest.SkipTest("Invalid project: %s" % project_name)
+
+        runner = BenchmarkRunner(project_info)
+        if runner.slack == None:
+            raise unittest.SkipTest("Slack is not configured.")
+        if not "channel" in runner.slack.cfg or not "token" in runner.slack.cfg:
+            raise unittest.SkipTest("'channel' and/or 'token' not found.. Cannot post file to slack.")
+
+        filename= "dummy_file"
+        with open(filename, 'a') as f:
+            f.write("Hello World.")
+
+        rc = runner.slack.post_file(filename, "Test file, please ignore.")
+
+        remove(filename)
+
+        self.assertEqual(rc, 0)
+
     def test_upload_image(self):
         from benchmark import conf, read_json, upload
 
@@ -31,7 +60,7 @@ class TestCase(unittest.TestCase):
         except KeyError:
             raise unittest.SkipTest("image destination not specified.")
 
-        filename= "dummy_file"
+        filename= "dummy_image"
         open(filename, 'a').close()
 
         rc, out, err = upload([filename], dest)
