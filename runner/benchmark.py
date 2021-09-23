@@ -416,6 +416,9 @@ class RunScript(object):
 
         self.script = script = []
 
+        script.append("set -v")
+        # script.append("set -e")
+
         for line in conf.get("script_prefix"):
             script.append(line)
 
@@ -432,8 +435,7 @@ class RunScript(object):
 
         script.append("\ncat ~/.condarc")
 
-        script.append("\nconda deactivate")
-        script.append("\nconda deactivate")
+        script.append("\nconda deactivate\nconda deactivate\n")
 
         conda_spec = project["conda"]
 
@@ -445,7 +447,7 @@ class RunScript(object):
             "cython",           # for building dependencies
             "psutil",           # for testflo benchmarking
             # "memory_profiler",  # for testflo benchmarking
-            "nomkl",            # TODO: experiment with this
+            #"nomkl",            # TODO: experiment with this
             "matplotlib",       # for plotting results
             "curl",             # for uploading files & slack messages
             "sqlite"            # for backing up the database
@@ -461,14 +463,16 @@ class RunScript(object):
             pkgs = []
             for spec in project["anaconda"]:
                 pkgs.append(spec)
-            script.append("conda install -c anaconda %s --yes" % " ".join(pkgs))
+            if pkgs:
+                script.append("conda install -c anaconda %s --yes" % " ".join(pkgs))
 
         # install conda-forge dependencies
         if "conda-forge" in project:
             pkgs = []
             for spec in project["conda-forge"]:
                 pkgs.append(spec)
-            script.append("conda install -c conda-forge %s --yes" % " ".join(pkgs))
+            if pkgs:
+                script.append("conda install -c conda-forge %s --yes" % " ".join(pkgs))
 
         # install the proper version of testflo to do the benchmarking
         for spec in conda_spec:
@@ -476,7 +480,7 @@ class RunScript(object):
                 # self.install("testflo<1.4", options="")
                 script.append("pip install testflo<1.4")
                 break
-            elif "python=3" in spec:
+            elif "python=3" in spec or "python\>=3" in spec:
                 # self.install("testflo", options="")
                 script.append("pip install testflo")
                 break
