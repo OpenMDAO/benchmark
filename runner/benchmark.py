@@ -514,9 +514,11 @@ class RunScript(object):
             script.append("cd -")
 
         # install repository
-        repository = project["repository"]
-        script.append("\n## Install repo: %s" % repository)
-        script.append("cd %s" % repository.split('/')[-1])
+        repo_name = project["repository"].split('/')[-1]
+        if '#' in repo_name:
+            repo_name = repo_name.split('#')[0]
+        script.append("\n## Install repo: %s" % repo_name)
+        script.append("cd %s" % repo_name)
         script.append("if test -f requirements.txt; then")
         script.append("    pip install -r requirements.txt")
         script.append("fi")
