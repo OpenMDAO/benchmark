@@ -1,0 +1,28 @@
+{
+    "repository": "git@developer.nasa.gov:TTT-MDAO/LEAPS-2.0",
+
+    "triggers": [
+        "git@github.com:openmdao/OpenMDAO"
+    ],
+
+    "conda": [
+        "python=3",
+        "numpy",
+        "scipy"
+    ],
+
+    "conda-forge": [
+        "pyoptsparse"
+    ],
+
+    "dependencies": [
+        "pyxdsm"
+    ],
+
+    "postinstall": [
+        "cd LEAPS2/XDSM",
+        "for fn in `ls *.py`; do python $fn; done",
+        "cp */*.json .",
+        "cd ../.."
+    ]
+}
