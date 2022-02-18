@@ -416,7 +416,7 @@ class RunScript(object):
 
         self.script = script = []
 
-        script.append("set -v")
+        # script.append("set -v")
         # script.append("set -e")
 
         for line in conf.get("script_prefix"):
@@ -519,10 +519,14 @@ class RunScript(object):
             repo_name = repo_name.split('#')[0]
         script.append("\n## Install repo: %s" % repo_name)
         script.append("cd %s" % repo_name)
-        script.append("if test -f requirements.txt; then")
-        script.append("    pip install -r requirements.txt")
-        script.append("fi")
-        script.append("pip install -e .%s" % project.get("extras", ""))
+        if "install" in project:
+            for line in project["install"]:
+                script.append(line)
+        else:
+            script.append("if test -f requirements.txt; then")
+            script.append("    pip install -r requirements.txt")
+            script.append("fi")
+            script.append("pip install -e .%s" % project.get("extras", ""))
 
         # run any post-install commands (in the conda environment & repo dir)
         if "postinstall" in project:
@@ -584,7 +588,11 @@ class Slack(object):
         post a simple message
         """
         for n in notify:
-            message += " <@%s>" % n
+            if n.startswith("!"):
+                message += " <%s>" % n
+            else:
+                message += " <@%s>" % n
+
 
         payload = {
             "attachments": [
@@ -1315,14 +1323,14 @@ class BenchmarkRunner(object):
                     if '#' in repo_name:
                         repo_name = repo_name.split('#')[0]
 
-                    notify = project.get("notify", [])
+                    notify = project.get("notify", ["!channel"])
 
                     script = project.get("script")
                     if script:
                         rc, out, err = execute_cmd(script, shell=True, combine=True)
                         if rc:
                             good_commits = False
-                            self.slack.post_message("%s However, testing failed... <!channel>" % trigger_msg, notify=notify)
+                            self.slack.post_message("%s However, testing failed..." % trigger_msg, notify=notify)
                         else:
                             self.slack.post_message("%s Testing was successful." % trigger_msg)
                         if out:
@@ -1345,7 +1353,7 @@ class BenchmarkRunner(object):
                                     if line.split()[1] != "0":
                                         good_commits = False
                                         if self.slack:
-                                            self.slack.post_message("%s However, unit tests failed... <!channel>" % trigger_msg, notify=notify)
+                                            self.slack.post_message("%s However, unit tests failed..." % trigger_msg, notify=notify)
                                             self.slack.post_file(test_log,
                                                                  "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
 
@@ -1359,7 +1367,7 @@ class BenchmarkRunner(object):
                                     if line.split()[1] != "0":
                                         good_commits = False
                                         if self.slack:
-                                            self.slack.post_message("%s However, benchmarks failed... <!channel>" % trigger_msg, notify=notify)
+                                            self.slack.post_message("%s However, benchmarks failed..." % trigger_msg, notify=notify)
                                             self.slack.post_file(benchmark_log,
                                                                  "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
 
