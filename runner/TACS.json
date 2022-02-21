@@ -1,0 +1,57 @@
+{
+    "repository": "git@github.com:smdogroup/tacs",
+
+    "triggers": [
+    ],
+
+    "conda": [
+        "python=3.8",
+        "numpy=1.18",
+        "scipy=1.4",
+        "gxx_linux-64"
+    ],
+
+    "anaconda": [
+        "openmpi",
+        "openblas"
+    ],
+
+    "conda-forge": [
+        "lapack",
+        "metis",
+        "mpi4py"
+    ],
+
+    "dependencies": [
+        "cython",
+        "pynastran"
+    ],
+
+    "preinstall": [
+        "set -e"
+    ],
+
+    "install": [
+    ],
+
+    "postinstall": [
+        "export OMPI_MCA_btl=self,tcp",
+        "export OMPI_MCA_rmaps_base_oversubscribe=1",
+        "export OPTIONAL=default",
+        "export INTERFACE=interface",
+        "export EXAMPLES=default",
+        "pwd",
+        "export TACS_DIR=`pwd`",
+        "cp Makefile.in.info Makefile.in",
+        "make ${OPTIONAL} TACS_DIR=$TACS_DIR METIS_INCLUDE=-I${CONDA_PREFIX}/include/ METIS_LIB=\"-L${CONDA_PREFIX}/lib/ -lmetis\"",
+        "cd $TACS_DIR",
+        "make ${INTERFACE}",
+        "cd $TACS_DIR/examples",
+        "make ${EXAMPLES} TACS_DIR=$TACS_DIR METIS_INCLUDE=-I${CONDA_PREFIX}/include/ METIS_LIB=\"-L${CONDA_PREFIX}/lib/ -lmetis\"",
+        "cd $TACS_DIR"
+    ],
+
+    "notify": [
+        "U02AMFNE3N0"
+    ]
+}

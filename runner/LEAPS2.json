@@ -24,5 +24,11 @@
         "for fn in `ls *.py`; do python $fn; done",
         "cp */*.json .",
         "cd ../.."
+    ],
+
+    "notify": [
+        "U02C63E29",
+        "U02BT9BC5"
     ]
+
 }

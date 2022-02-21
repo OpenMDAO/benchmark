@@ -35,5 +35,9 @@
         "export IPOPT_INC=`pwd`/include/coin-or",
         "export IPOPT_LIB=`pwd`/lib",
         "export LD_LIBRARY_PATH=`pwd`/lib"
+    ],
+
+    "notify": [
+        "!subteam^S01PJ2C9GPN"
     ]
 }
