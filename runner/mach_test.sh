@@ -76,6 +76,7 @@ fi
 cd core
 git checkout egads-dev
 git pull
+git submodule update --init --recursive
 
 if [ ! -d "build" ]; then
   mkdir build
@@ -213,4 +214,3 @@ conda list
 
 # disabled for now
 #testflo --timeout=120 -vs mach/test
-
