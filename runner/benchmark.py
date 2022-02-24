@@ -433,7 +433,7 @@ class RunScript(object):
         # create conda env with required packages
         script.append("\n## Create Conda environment")
 
-        script.append("\ncat ~/.condarc")
+        # script.append("\ncat ~/.condarc")
 
         script.append("\nconda deactivate\nconda deactivate\n")
 
@@ -545,7 +545,7 @@ class RunScript(object):
 
         # run benchmarks
         script.append("\n## Run benchmarks")
-        benchmark_cmd = "/".join([benchmark_dir, conf.get("benchmark_cmd")])
+        benchmark_cmd = conf.get("benchmark_cmd")
         if benchmark_cmd:
             benchmark_cmd = "%s $RUN_NAME $RUN_NAME.csv" % benchmark_cmd
         else:

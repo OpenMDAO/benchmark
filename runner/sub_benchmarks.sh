@@ -55,7 +55,7 @@ unset USE_PROC_FILES
 # what is using cpu before
 ps -eo pcpu,cpuid,pid,user,args | sort -k 1 -r | head -10 >>top.txt
 
-mpirun -np 1 testflo -n 1 -bv -d $CSV_FILE
+testflo -n 1 -bv -d $CSV_FILE
 
 # what is using cpu after
 ps -eo pcpu,cpuid,pid,user,args | sort -k 1 -r | head -10 >>top.txt
