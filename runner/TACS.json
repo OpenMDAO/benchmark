@@ -8,26 +8,22 @@
         "python=3.8",
         "numpy=1.18",
         "scipy=1.4",
-        "gxx_linux-64"
-    ],
-
-    "anaconda": [
-        "openmpi",
-        "openblas"
+        "cython",
+        "gxx_linux-64",
+        "mpi4py"
     ],
 
     "conda-forge": [
         "lapack",
-        "metis",
-        "mpi4py"
+        "metis"
     ],
 
     "dependencies": [
-        "cython",
         "pynastran"
     ],
 
     "preinstall": [
+        "module load openmpi/4.1.0/gnu/10.2.0",
         "set -e"
     ],
 
@@ -40,7 +36,6 @@
         "export OPTIONAL=default",
         "export INTERFACE=interface",
         "export EXAMPLES=default",
-        "pwd",
         "export TACS_DIR=`pwd`",
         "export PYTHONPATH=$TACS_DIR:$PYTHONPATH",
         "cp Makefile.in.info Makefile.in",
