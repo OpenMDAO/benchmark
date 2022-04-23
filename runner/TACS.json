@@ -2,6 +2,7 @@
     "repository": "git@github.com:smdogroup/tacs",
 
     "triggers": [
+        "git@github.com:openmdao/mphys"
     ],
 
     "conda": [
@@ -9,28 +10,26 @@
         "numpy=1.18",
         "scipy=1.4",
         "cython",
-        "gxx_linux-64",
-        "mpi4py"
+        "zlib=1.2.11",
+        "gxx_linux-64"
+    ],
+
+    "anaconda": [
+        "openmpi",
+        "openblas"
     ],
 
     "conda-forge": [
+        "petsc4py=3.12",
         "lapack",
         "metis"
-    ],
-
-    "dependencies": [
-        "pynastran"
-    ],
-
-    "preinstall": [
-        "module load openmpi/4.1.0/gnu/10.2.0",
-        "set -e"
     ],
 
     "install": [
     ],
 
     "postinstall": [
+        "pip3 install mpi4py --no-binary mpi4py --user --force --no-cache-dir",
         "export OMPI_MCA_btl=self,tcp",
         "export OMPI_MCA_rmaps_base_oversubscribe=1",
         "export OPTIONAL=default",
