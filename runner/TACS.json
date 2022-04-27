@@ -2,32 +2,30 @@
     "repository": "git@github.com:smdogroup/tacs",
 
     "triggers": [
+        "git@github.com:OpenMDAO/mphys",
+        "git@github.com:OpenMDAO/OpenMDAO"
+    ],
+
+    "preinstall": [
+        "module load mvapich2/2.3.1/gnu/4.8.5"
     ],
 
     "conda": [
-        "python=3.8",
-        "numpy=1.18",
-        "scipy=1.4",
-        "cython",
-        "gxx_linux-64",
-        "mpi4py"
+        "python=3",
+        "numpy",
+        "scipy",
+        "gxx_linux-64"
     ],
 
     "conda-forge": [
+        "mpi4py=*=*mpich*",
+        "petsc4py",
         "lapack",
         "metis"
     ],
 
-    "dependencies": [
-        "pynastran"
-    ],
-
-    "preinstall": [
-        "module load openmpi/4.1.0/gnu/10.2.0",
-        "set -e"
-    ],
-
     "install": [
+        "echo TACS is installed via the 'make'"
     ],
 
     "postinstall": [
@@ -37,7 +35,6 @@
         "export INTERFACE=interface",
         "export EXAMPLES=default",
         "export TACS_DIR=`pwd`",
-        "export PYTHONPATH=$TACS_DIR:$PYTHONPATH",
         "cp Makefile.in.info Makefile.in",
         "make ${OPTIONAL} TACS_DIR=$TACS_DIR METIS_INCLUDE=-I${CONDA_PREFIX}/include/ METIS_LIB=\"-L${CONDA_PREFIX}/lib/ -lmetis\"",
         "cd $TACS_DIR",
