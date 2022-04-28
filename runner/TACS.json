@@ -25,10 +25,6 @@
     ],
 
     "install": [
-        "echo TACS is installed via the 'make'"
-    ],
-
-    "postinstall": [
         "export OMPI_MCA_btl=self,tcp",
         "export OMPI_MCA_rmaps_base_oversubscribe=1",
         "export OPTIONAL=default",
