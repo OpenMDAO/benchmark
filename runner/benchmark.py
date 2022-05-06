@@ -541,7 +541,7 @@ class RunScript(object):
         # run unit tests
         if unit_tests:
             script.append("\n## Run unit tests")
-            script.append("testflo -n 1 --show_skipped -o $RUN_NAME.log")
+            script.append("testflo -n 1 --timeout=120 --show_skipped -o $RUN_NAME.log")
 
         # run benchmarks
         script.append("\n## Run benchmarks")
@@ -549,7 +549,7 @@ class RunScript(object):
         if benchmark_cmd:
             benchmark_cmd = "%s $RUN_NAME $RUN_NAME.csv" % benchmark_cmd
         else:
-            benchmark_cmd = "testflo -n 1 -bvs -o $RUN_NAME-bm.log  -d $RUN_NAME.csv"
+            benchmark_cmd = "testflo -n 1 --timeout=120 -bvs -o $RUN_NAME-bm.log  -d $RUN_NAME.csv"
         script.append("if [ $? -eq 0 ]; then")
         script.append(benchmark_cmd)
         script.append("fi")
