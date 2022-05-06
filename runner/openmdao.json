@@ -27,6 +27,7 @@
     "extras": "[all]",
 
     "postinstall": [
+        "export OPENMDAO_REPORTS=0",
         "~/dev/build_pyoptsparse/build_pyoptsparse.sh -p `pwd` -s ~/dev/snopt7/src",
         "export IPOPT_INC=`pwd`/include/coin-or",
         "export IPOPT_LIB=`pwd`/lib",
