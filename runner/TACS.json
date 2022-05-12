@@ -37,7 +37,8 @@
         "make ${INTERFACE}",
         "cd $TACS_DIR/examples",
         "make ${EXAMPLES} TACS_DIR=$TACS_DIR METIS_INCLUDE=-I${CONDA_PREFIX}/include/ METIS_LIB=\"-L${CONDA_PREFIX}/lib/ -lmetis\"",
-        "cd $TACS_DIR"
+        "cd $TACS_DIR",
+        "pip install ."
     ],
 
     "notify": [

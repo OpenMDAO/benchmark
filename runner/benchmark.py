@@ -283,14 +283,13 @@ def conda(name):
     # modify PATH for environment
     path = env["PATH"].split(os.pathsep)
     for dirname in path:
-        if ("anaconda" in dirname or "miniconda" in dirname) and dirname.endswith("/bin"):
+        if ("anaconda" in dirname or "miniconda" in dirname or "miniforge" in dirname) and dirname.endswith("/bin"):
             conda_dir = dirname
             path.remove(conda_dir)
             break
 
     env_path = conda_dir.replace("/bin", "/envs/"+name)
     env["PATH"] = prepend_path(env_path+"/bin", (os.pathsep).join(path))
-
 
     logging.info('> switching environment (into %s)', name)
     try:
