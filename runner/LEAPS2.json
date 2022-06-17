@@ -5,8 +5,13 @@
         "git@github.com:openmdao/OpenMDAO"
     ],
 
+    "preinstall": [
+        "unset USE_PROC_FILES"
+    ],
+
     "conda": [
-        "python=3",
+        "python",
+        "gfortran=12",
         "numpy",
         "scipy"
     ],
@@ -21,8 +26,9 @@
 
     "postinstall": [
         "cd LEAPS2/XDSM",
-        "for fn in `ls *.py`; do python $fn; done",
-        "cp */*.json .",
+        "for fn in `ls *.py`; do",
+        "  if [ \"$fn\" != \"make_XDSM.py\" ]; then python $fn; fi",
+        "done",
         "cd ../.."
     ],
 

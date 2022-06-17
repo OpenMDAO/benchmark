@@ -6,18 +6,27 @@
     ],
 
     "preinstall": [
-        "module load mvapich2/2.3.1/gnu/4.8.5"
+        "module load openmpi/4.1.3/gnu/8.5.0",
+        "unset USE_PROC_FILES"
     ],
 
     "conda": [
         "python=3",
+        "gfortran=12",
         "numpy",
         "scipy"
     ],
 
     "conda-forge": [
-        "mpi4py=*=*mpich*",
+        "mpi4py",
         "petsc4py"
+    ],
+
+    "dependencies": [
+        "psutil",
+        "objgraph",
+        "git+https://github.com/mdolab/pyxdsm",
+        "jaxlib"
     ],
 
     "extras": "[all]",
@@ -29,7 +38,7 @@
         "~/dev/build_pyoptsparse/build_pyoptsparse.sh -b $LATEST_VER -p `pwd` -s ~/dev/snopt7/src",
         "export IPOPT_INC=`pwd`/include/coin-or",
         "export IPOPT_LIB=`pwd`/lib",
-        "export LD_LIBRARY_PATH=`pwd`/lib"
+        "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`/lib"
     ],
 
     "notify": [
