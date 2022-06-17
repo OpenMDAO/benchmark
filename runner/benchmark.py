@@ -1590,7 +1590,7 @@ def main(args=None):
             else:
                 # use a different repo directory for each project
                 conf["repo_dir"] = os.path.expanduser(
-                    os.path.join(conf["working_dir"], ("repos_"+project_name)))
+                    os.path.join(conf["working_dir"], "repos", project_name))
 
                 bm = BenchmarkRunner(project_info)
                 try:
