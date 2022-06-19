@@ -5,7 +5,6 @@
     ],
 
     "preinstall": [
-        "module load openmpi/4.1.3/gnu/8.5.0",
         "unset USE_PROC_FILES"
     ],
 

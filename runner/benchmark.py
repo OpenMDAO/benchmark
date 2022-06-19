@@ -1326,6 +1326,7 @@ class BenchmarkRunner(object):
 
                     script = project.get("script")
                     if script:
+                        logging.info("Running predefined script: %s" % script)
                         rc, out, err = execute_cmd(script, shell=True, combine=True)
                         if rc:
                             good_commits = False

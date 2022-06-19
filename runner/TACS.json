@@ -7,9 +7,6 @@
     ],
 
     "preinstall": [
-        "module load openmpi/4.1.3/gnu/8.5.0",
-        "export OMPI_MCA_btl=self,tcp",
-        "export OMPI_MCA_rmaps_base_oversubscribe=1",
         "unset USE_PROC_FILES"
     ],
 
@@ -18,9 +15,7 @@
         "gxx_linux-64=9.3.0",
         "python=3",
         "numpy",
-        "scipy",
-        "lapack",
-        "metis"
+        "scipy"
     ],
 
     "conda-forge": [

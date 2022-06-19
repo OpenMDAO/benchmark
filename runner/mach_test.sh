@@ -17,9 +17,7 @@ module purge
 module load miniforge/4.10.3
 eval "$(conda shell.bash hook)"
 
-module load hypre/2.20.0
 module load openmpi/4.1.3/gnu/8.5.0
-
 export PATH=$PATH:/cryo/sw/openmpi/4.1.3/gnu/8.5.0/bin
 export CPATH=$CPATH:/cryo/sw/openmpi/4.1.3/gnu/8.5.0/include
 
@@ -38,7 +36,7 @@ fi
 if ! conda env list | grep mach_test; then
   conda create --yes -n mach_test python=3 gxx_linux-64=8.4.0 sysroot_linux-64=2.17 cmake cython swig
   conda activate mach_test
-  conda install --yes -c conda-forge mpi4py petsc4py
+  conda install --yes -c conda-forge mpi4py petsc4py hypre
   pip install mkdocs
 else
   conda activate mach_test
