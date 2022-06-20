@@ -11,15 +11,17 @@ set -e
 export WD=$PWD
 
 #
-# need gcc8, openmpi and hypre
+# load conda and openmpi modules
 #
 module purge
+
 module load miniforge/4.10.3
 eval "$(conda shell.bash hook)"
 
 module load openmpi/4.1.3/gnu/8.5.0
-export PATH=$PATH:/cryo/sw/openmpi/4.1.3/gnu/8.5.0/bin
-export CPATH=$CPATH:/cryo/sw/openmpi/4.1.3/gnu/8.5.0/include
+export OMPI_MCA_btl=self,tcp
+export OMPI_MCA_rmaps_base_oversubscribe=1
+mpicc --version
 
 #
 # need a python environment with mpi4py and mkdocs 
