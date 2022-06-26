@@ -21,4 +21,3 @@ else
     DATE_STR=`date +"%F-%H%M%S"`
     nohup $CMD >& server-$DATE_STR.out &
 fi
-

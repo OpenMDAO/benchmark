@@ -9,15 +9,12 @@ from subprocess import Popen, PIPE
 import sys
 import os
 import os.path
-import stat
 import shlex
 import sqlite3
 import time
 import json
 import csv
 import math
-import tempfile
-import pathlib
 
 from datetime import datetime
 
@@ -43,13 +40,14 @@ benchmark_dir = os.path.abspath(os.path.dirname(__file__))
 conf = {
     # directories used during benchmarking
     "working_dir": benchmark_dir,
+    "data_dir":    "data",
     "repo_dir":    "repos",
     "logs_dir":    "logs",
 
     # script needs at least bash and conda
     "script_prefix": [
         "#!/bin/bash",
-        "source ~/anaconda3/etc/profile.d/conda.sh"
+        "set -e"
     ],
 
     # remove benchmark data file after adding to database
@@ -423,12 +421,6 @@ class RunScript(object):
 
         script.append("\nRUN_NAME=%s" % run_name)
 
-        # run any pre-install commands
-        if "preinstall" in project:
-            script.append("\n## Run pre-install commands")
-            for cmd in project["preinstall"]:
-                script.append(os.path.expanduser(cmd))
-
         # create conda env with required packages
         script.append("\n## Create Conda environment")
 
@@ -447,9 +439,9 @@ class RunScript(object):
             "psutil",           # for testflo benchmarking
             # "memory_profiler",  # for testflo benchmarking
             #"nomkl",            # TODO: experiment with this
-            "matplotlib",       # for plotting results
-            "curl",             # for uploading files & slack messages
-            "sqlite"            # for backing up the database
+            # "matplotlib",       # for plotting results
+            # "curl",             # for uploading files & slack messages
+            # "sqlite"            # for backing up the database
         ]
         cmd = cmd + " ".join(conda_pkgs)
         script.append(cmd)
@@ -457,32 +449,11 @@ class RunScript(object):
         # activate
         script.append("conda activate $RUN_NAME")
 
-        # install anaconda dependencies
-        if "anaconda" in project:
-            pkgs = []
-            for spec in project["anaconda"]:
-                pkgs.append(spec)
-            if pkgs:
-                script.append("conda install -c anaconda %s --yes" % " ".join(pkgs))
-
-        # install conda-forge dependencies
-        if "conda-forge" in project:
-            pkgs = []
-            for spec in project["conda-forge"]:
-                pkgs.append(spec)
-            if pkgs:
-                script.append("conda install -c conda-forge %s --yes" % " ".join(pkgs))
-
-        # install the proper version of testflo to do the benchmarking
-        for spec in conda_spec:
-            if "python=2" in spec:
-                # self.install("testflo<1.4", options="")
-                script.append("pip install testflo<1.4")
-                break
-            elif "python=3" in spec or "python\>=3" in spec:
-                # self.install("testflo", options="")
-                script.append("pip install testflo")
-                break
+        # run any pre-install commands
+        if "preinstall" in project:
+            script.append("\n## Run pre-install commands")
+            for cmd in project["preinstall"]:
+                script.append(os.path.expanduser(cmd))
 
         # install dependencies
         if "dependencies" in project:
@@ -499,6 +470,35 @@ class RunScript(object):
                     script.append("cd -")
                 else:
                     script.append("pip install %s" % dependency)
+
+        # install anaconda dependencies
+        if "anaconda" in project:
+            script.append("\n## Install from anaconda")
+            pkgs = []
+            for spec in project["anaconda"]:
+                pkgs.append(spec)
+            if pkgs:
+                script.append("conda install -c anaconda %s --yes" % " ".join(pkgs))
+
+        # install conda-forge dependencies
+        if "conda-forge" in project:
+            script.append("\n## Install from conda-forge")
+            pkgs = []
+            for spec in project["conda-forge"]:
+                pkgs.append(spec)
+            if pkgs:
+                script.append("conda install -c conda-forge %s --yes" % " ".join(pkgs))
+
+        # install the proper version of testflo to do the benchmarking
+        for spec in conda_spec:
+            if "python=2" in spec:
+                # self.install("testflo<1.4", options="")
+                script.append("pip install testflo<1.4")
+                break
+            elif spec == "python"  or "python=" in spec or "python\>=" in spec:
+                # self.install("testflo", options="")
+                script.append("pip install testflo")
+                break
 
         # install triggers
         for trigger in project["triggers"]:
@@ -677,7 +677,7 @@ class BenchmarkDatabase(object):
     """
     def __init__(self, name):
         self.name = name
-        self.dbname = name+".db"
+        self.dbname = os.path.join(conf["data_dir"], name+".db")
         self.connection = sqlite3.connect(self.dbname)
 
         logging.info('Connected to database: ' + os.path.abspath(self.dbname))
@@ -1326,6 +1326,7 @@ class BenchmarkRunner(object):
 
                     script = project.get("script")
                     if script:
+                        logging.info("Running predefined script: %s" % script)
                         rc, out, err = execute_cmd(script, shell=True, combine=True)
                         if rc:
                             good_commits = False
@@ -1590,7 +1591,7 @@ def main(args=None):
             else:
                 # use a different repo directory for each project
                 conf["repo_dir"] = os.path.expanduser(
-                    os.path.join(conf["working_dir"], (project_name+"_repos")))
+                    os.path.join(conf["working_dir"], "repos", project_name))
 
                 bm = BenchmarkRunner(project_info)
                 try:

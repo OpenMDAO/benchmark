@@ -2,11 +2,17 @@
     "repository": "git@developer.nasa.gov:TTT-MDAO/LEAPS-2.0",
 
     "triggers": [
-        "git@github.com:openmdao/OpenMDAO"
+        "git@github.com:openmdao/OpenMDAO",
+        "git@github.com:openmdao/dymos"
+    ],
+
+    "preinstall": [
+        "unset USE_PROC_FILES"
     ],
 
     "conda": [
-        "python=3",
+        "python",
+        "gfortran=12",
         "numpy",
         "scipy"
     ],
@@ -16,14 +22,15 @@
     ],
 
     "dependencies": [
-        "pyxdsm"
+        "pyxdsm",
+        "matplotlib"
     ],
 
     "postinstall": [
-        "cd LEAPS2/XDSM",
-        "for fn in `ls *.py`; do python $fn; done",
-        "cp */*.json .",
-        "cd ../.."
+        "~/dev/build_pyoptsparse/build_pyoptsparse.sh -p `pwd` -s ~/dev/snopt7/src",
+        "export IPOPT_INC=`pwd`/include/coin-or",
+        "export IPOPT_LIB=`pwd`/lib",
+        "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`/lib"
     ],
 
     "notify": [

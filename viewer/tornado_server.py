@@ -18,7 +18,7 @@ def date(timestamp):
 # default configuration options
 #
 conf = {
-    "database_dir": os.path.abspath(os.path.join(os.path.dirname(__file__),"../runner")),
+    "database_dir": os.path.abspath(os.path.join(os.path.dirname(__file__), "../runner/data")),
     "base_url": ""
 }
 
@@ -33,7 +33,7 @@ class ProjectHandler(tornado.web.RequestHandler):
             database_dir = conf["database_dir"]
             dbs = [f for f in os.listdir(database_dir) if f.endswith(".db")]
 
-            if not project:
+            if not project or project.startswith("index."):
                 projects = [filename.rsplit(".")[0] for filename in dbs]
                 self.render("main_template.html", projects=projects, base_url=conf["base_url"])
             elif (project+".db") not in dbs:

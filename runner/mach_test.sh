@@ -3,7 +3,6 @@
 #
 # set verbose, exit on error
 #
-set -v
 set -e
 
 #
@@ -12,39 +11,42 @@ set -e
 export WD=$PWD
 
 #
-# need gcc8, openmpi and hypre
+# load conda and openmpi modules
 #
 module purge
-module load gcc/8.1.0 openmpi/4.0.5 hypre/2.20.0
-module load gnu_build/20210203
-export CPATH=/hx/software/apps/openmpi/4.0.5/gcc8/include/
+
+module load miniforge/4.10.3
+eval "$(conda shell.bash hook)"
+
+module load openmpi/4.1.3/gnu/8.5.0
+export OMPI_MCA_btl=self,tcp
+export OMPI_MCA_rmaps_base_oversubscribe=1
+mpicc --version
 
 #
 # need a python environment with mpi4py and mkdocs 
 #
 conda deactivate
 conda deactivate
-source /mdao/w/anaconda3/etc/profile.d/conda.sh
 
+echo "#########################"
+echo "Create Environment"
+echo "#########################"
 if conda env list | grep mach_test; then
     conda env remove -n mach_test
 fi
 if ! conda env list | grep mach_test; then
-  conda create --yes -n mach_test python=3 cython swig
+  conda create --yes -n mach_test python=3 gxx_linux-64=8.4.0 sysroot_linux-64=2.17 cmake cython swig
   conda activate mach_test
+  conda install --yes -c conda-forge mpi4py petsc4py hypre
   pip install mkdocs
-  export LDFLAGS+=" -shared"
-  env MPICC=`which mpicc` pip install mpi4py
-  env MPICC=`which mpicc` pip install petsc4py
-  unset LDFLAGS
 else
   conda activate mach_test
 fi
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/"
 
-#
-# build ESP
-#
+echo "#########################"
+echo "Build ESP"
+echo "#########################"
 cd $WD
 if [ ! -d "OpenCASCADE-7.4.1" ]; then
   #wget -nv https://acdl.mit.edu/esp/otherOCCs/OCC741lin64.tgz
@@ -65,9 +67,9 @@ source ESPenv.sh
 cd src
 make
 
-#
-# build PUMI
-#
+echo "#########################"
+echo "Build PUMI"
+echo "#########################"
 cd $WD
 if [ ! -d "core" ]; then
   git clone https://github.com/tuckerbabcock/core
@@ -83,7 +85,7 @@ if [ ! -d "build" ]; then
 fi
 cd build
 cat <<EOF > config_pumi.sh
-cmake3 .. \\
+cmake .. \\
   -DCMAKE_C_COMPILER="mpicc" \\
   -DCMAKE_POSITION_INDEPENDENT_CODE="YES" \\
   -DCMAKE_CXX_COMPILER="mpicxx" \\
@@ -97,15 +99,15 @@ cmake3 .. \\
   -DENABLE_EGADS=ON \\
   -DPUMI_USE_EGADSLITE=OFF \\
   -DEGADS_DIR="\$ESP_ROOT" \\
-  -DCMAKE_INSTALL_PREFIX=\$PWD/install
+  -DCMAKE_INSTALL_PREFIX=./install
 EOF
 source config_pumi.sh
 make -j 4
 make install
 
-#
-# build MFEM
-#
+echo "#########################"
+echo "Build MFEM"
+echo "#########################"
 cd $WD
 if [ ! -d "mfem" ]; then
   git clone https://github.com/mfem/mfem
@@ -120,7 +122,7 @@ if [ ! -d "build" ]; then
 fi
 cd build
 cat <<EOF > config_mfem.sh
-cmake3 .. \\
+cmake .. \\
   -DCMAKE_BUILD_TYPE=Debug \\
   -DMFEM_USE_MPI=YES \\
   -DMFEM_USE_METIS_5=YES \\
@@ -136,9 +138,9 @@ EOF
 source config_mfem.sh
 make -j
 
-#
-# build Adept-2
-#
+echo "#########################"
+echo "Build Adept-2"
+echo "#########################"
 cd $WD
 if [ ! -d "Adept-2" ]; then
   git clone git@github.com:rjhogan/Adept-2
@@ -156,9 +158,9 @@ set +e
 make install
 set -e
 
-#
-# build MACH
-#
+echo "#########################"
+echo "Build MACH"
+echo "#########################"
 cd $WD
 if [ ! -d "mach" ]; then
   git clone git@github.com:OptimalDesignLab/mach.git
@@ -173,7 +175,7 @@ if [ ! -d "build" ]; then
 fi
 cd build
 cat <<EOF > mach_config.sh
-cmake3 .. \\
+cmake .. \\
  -DCMAKE_BUILD_TYPE="Release" \\
  -DADEPT_DIR="../Adept-2/" \\
  -DMFEM_DIR="../mfem/build/" \\
@@ -191,9 +193,10 @@ make build_tests -j
 ctest --output-on-failure
 make install
 
-#
-# install OpenMDAO
-#
+echo "#########################"
+echo "Install OpenMDAO"
+echo "#########################"
+
 cd $WD
 if [ ! -d "OpenMDAO" ]; then
   git clone git@github.com:OpenMDAO/OpenMDAO
@@ -203,9 +206,9 @@ cd OpenMDAO
 git pull
 pip install --upgrade -e .[test]
 
-#
-# test mach python wrapper
-#
+echo "#########################"
+echo "Test mach python wrapper"
+echo "#########################"
 cd $WD
 cd mach
 pip install --upgrade -e .
