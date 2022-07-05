@@ -19,7 +19,6 @@ module load miniforge/4.10.3
 eval "$(conda shell.bash hook)"
 
 module load openmpi/4.1.3/gnu/8.5.0
-export OMPI_MCA_btl=self,tcp
 export OMPI_MCA_rmaps_base_oversubscribe=1
 mpicc --version
 
