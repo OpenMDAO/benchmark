@@ -24,6 +24,7 @@
     ],
 
     "install": [
+        "pip install 'pip<22.1'",
         "export OPTIONAL=default",
         "export INTERFACE=interface",
         "export EXAMPLES=default",

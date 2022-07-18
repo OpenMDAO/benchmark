@@ -14,10 +14,8 @@
         "python=3",
         "gfortran=12",
         "numpy",
-        "scipy"
-    ],
-
-    "anaconda": [
+        "scipy",
+        "six"
     ],
 
     "conda-forge": [
@@ -30,10 +28,8 @@
     ],
 
     "postinstall": [
-        "~/dev/build_pyoptsparse/build_pyoptsparse.sh -p `pwd` -s ~/dev/snopt7/src",
-        "export IPOPT_INC=`pwd`/include/coin-or",
-        "export IPOPT_LIB=`pwd`/lib",
-        "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`/lib"
+        "pip install ~/dev/build_pyoptsparse",
+        "build_pyoptsparse -s ~/dev/snopt7/src"
     ],
 
     "notify": [
