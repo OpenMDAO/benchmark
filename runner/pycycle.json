@@ -26,11 +26,9 @@
     ],
 
     "postinstall": [
-        "pip install ~/dev/build_pyoptsparse",
+        "pip install git+https://github.com/tadkollar/build_pyoptsparse@overhaul",
         "build_pyoptsparse -s ~/dev/snopt7/src"
     ],
-
-    "benchmark_timout": 600,
 
     "notify": [
         "!subteam^S01PJ2C9GPN"
