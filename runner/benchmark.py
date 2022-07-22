@@ -547,10 +547,11 @@ class RunScript(object):
         script.append("\n## Run benchmarks")
         benchmark_cmd = conf.get("benchmark_cmd")
         if benchmark_cmd:
-            benchmark_cmd = "%s $RUN_NAME $RUN_NAME.csv" % benchmark_cmd
+            benchmark_cmd = "%s $RUN_NAME -o $RUN_NAME-bm.log -d $RUN_NAME.csv -t %s" % (benchmark_cmd,
+                            project.get("benchmark_timeout", conf.get("benchmark_timeout", 3600)))
         else:
-            benchmark_cmd = "testflo -n 1 --timeout=%d -bvs -o $RUN_NAME-bm.log  -d $RUN_NAME.csv" % \
-                            project.get("benchmark_timeout", conf.get("benchmark_timeout", 300))
+            benchmark_cmd = "testflo -n 1 -bvs -o $RUN_NAME-bm.log -d $RUN_NAME.csv --timeout=%d" % \
+                            project.get("benchmark_timeout", conf.get("benchmark_timeout", 3600))
         script.append("if [ $? -eq 0 ]; then")
         script.append(benchmark_cmd)
         script.append("fi")
@@ -1274,7 +1275,8 @@ class BenchmarkRunner(object):
                         triggered_by.append(trigger)
 
         # if benchmark run is triggered:
-        # - check to see if this set of commits has failed already otherwise run unit tests
+        # - check to see if this set of commits has failed
+        # - if commits have not failed or forced, run unit tests
         # - run the benchmark
         # - save benchmark results to database
         # - clean up env and repos
@@ -1327,8 +1329,13 @@ class BenchmarkRunner(object):
 
                     notify = project.get("notify", ["!channel"])
 
+                    # reset flag
+                    good_commits = True
+
+                    # run tests and benchmarks
                     script = project.get("script")
                     if script:
+                        # script has been provided, just run it and check return code
                         logging.info("Running predefined script: %s" % script)
                         rc, out, err = execute_cmd(script, shell=True, combine=True)
                         if rc:
@@ -1343,10 +1350,11 @@ class BenchmarkRunner(object):
                             self.slack.post_file(test_log,
                                                  "\"%s : See attached output file.\"" % self.project["name"])
                     else:
+                        # generate script and then run it
                         script = RunScript(run_name, project, unit_tests, keep_env)
                         script.execute()
 
-                        # check for failed unit test
+                        # check for failed unit tests
                         if unit_tests:
                             test_log = os.path.join(repo_name, "%s.log" % run_name)
                             logging.info("unit test results file: %s", test_log)
