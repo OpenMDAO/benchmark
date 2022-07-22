@@ -6,14 +6,18 @@
         "git@github.com:OpenMDAO/OpenMDAO"
     ],
 
-    "preinstall": [
-        "unset USE_PROC_FILES"
+    "script_prefix": [
+        "#!/bin/bash",
+        "set -e",
+        "",
+        "module purge",
+        "module load miniforge/4.10.3",
+        "eval \"$(conda shell.bash hook)\""
     ],
 
     "conda": [
         "sysroot_linux-64=2.17",
-        "gxx_linux-64=8.5.0",
-        "zlib",
+        "gxx_linux-64=9.3.0",
         "python=3",
         "numpy",
         "scipy"
@@ -24,8 +28,13 @@
         "petsc4py"
     ],
 
+    "dependencies": [
+        "'pip<22.1'",
+        "testflo"
+    ],
+
     "install": [
-        "pip install 'pip<22.1'",
+        "conda list",
         "export OPTIONAL=default",
         "export INTERFACE=interface",
         "export EXAMPLES=default",

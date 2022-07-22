@@ -413,10 +413,8 @@ class RunScript(object):
 
         self.script = script = []
 
-        # script.append("set -v")
-        # script.append("set -e")
-
-        for line in conf.get("script_prefix"):
+        script_prefix = project.get("script_prefix", conf.get("script_prefix"))
+        for line in script_prefix:
             script.append(line)
 
         script.append("\nRUN_NAME=%s" % run_name)
