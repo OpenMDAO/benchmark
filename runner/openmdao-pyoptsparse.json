@@ -31,10 +31,10 @@
     "extras": "[all]",
 
     "postinstall": [
+        "pip install git+https://github.com/tadkollar/build_pyoptsparse@overhaul",
         "export LATEST_URL=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/mdolab/pyoptsparse/releases/latest`",
         "export LATEST_VER=`echo $LATEST_URL | awk '{split($0,a,\"/tag/\"); print a[2]}'`",
-        "pip install ~/dev/build_pyoptsparse",
-        "build_pyoptsparse -s ~/dev/snopt7/src"
+        "build_pyoptsparse -b $LATEST_VER -s ~/dev/snopt7/src"
     ],
 
     "notify": [
