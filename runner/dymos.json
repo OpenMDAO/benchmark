@@ -29,7 +29,7 @@
     "extras": "[all]",
 
     "postinstall": [
-        "pip install git+https://github.com/tadkollar/build_pyoptsparse@overhaul",
+        "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
         "build_pyoptsparse -s ~/dev/snopt7/src"
     ],
 
