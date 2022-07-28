@@ -413,10 +413,8 @@ class RunScript(object):
 
         self.script = script = []
 
-        # script.append("set -v")
-        # script.append("set -e")
-
-        for line in conf.get("script_prefix"):
+        script_prefix = project.get("script_prefix", conf.get("script_prefix"))
+        for line in script_prefix:
             script.append(line)
 
         script.append("\nRUN_NAME=%s" % run_name)
@@ -455,22 +453,6 @@ class RunScript(object):
             for cmd in project["preinstall"]:
                 script.append(os.path.expanduser(cmd))
 
-        # install dependencies
-        if "dependencies" in project:
-            script.append("\n## Install dependencies")
-            for dependency in project["dependencies"]:
-                if dependency.startswith("~") or dependency.startswith("/"):
-                    script.append("cd %s" % os.path.expanduser(dependency))
-                    script.append([
-                        "if test -f requirements.txt; then",
-                        "    pip install -r requirements.txt",
-                        "fi"
-                    ])
-                    script.append("pip install .")
-                    script.append("cd -")
-                else:
-                    script.append("pip install %s" % dependency)
-
         # install anaconda dependencies
         if "anaconda" in project:
             script.append("\n## Install from anaconda")
@@ -488,6 +470,22 @@ class RunScript(object):
                 pkgs.append(spec)
             if pkgs:
                 script.append("conda install -c conda-forge %s --yes" % " ".join(pkgs))
+
+        # install dependencies
+        if "dependencies" in project:
+            script.append("\n## Install dependencies")
+            for dependency in project["dependencies"]:
+                if dependency.startswith("~") or dependency.startswith("/"):
+                    script.append("cd %s" % os.path.expanduser(dependency))
+                    script.append([
+                        "if test -f requirements.txt; then",
+                        "    pip install -r requirements.txt",
+                        "fi"
+                    ])
+                    script.append("pip install .")
+                    script.append("cd -")
+                else:
+                    script.append("pip install %s" % dependency)
 
         # install the proper version of testflo to do the benchmarking
         for spec in conda_spec:
@@ -540,15 +538,18 @@ class RunScript(object):
         # run unit tests
         if unit_tests:
             script.append("\n## Run unit tests")
-            script.append("testflo -n 1 --timeout=120 --show_skipped -o $RUN_NAME.log")
+            script.append("testflo -n 1 --timeout=%d --show_skipped -o $RUN_NAME.log" %
+                          project.get("test_timeout", conf.get("test_timeout", 120)))
 
         # run benchmarks
         script.append("\n## Run benchmarks")
         benchmark_cmd = conf.get("benchmark_cmd")
         if benchmark_cmd:
-            benchmark_cmd = "%s $RUN_NAME $RUN_NAME.csv" % benchmark_cmd
+            benchmark_cmd = "%s $RUN_NAME -o $RUN_NAME-bm.log -d $RUN_NAME.csv -t %s" % (benchmark_cmd,
+                            project.get("benchmark_timeout", conf.get("benchmark_timeout", 3600)))
         else:
-            benchmark_cmd = "testflo -n 1 --timeout=120 -bvs -o $RUN_NAME-bm.log  -d $RUN_NAME.csv"
+            benchmark_cmd = "testflo -n 1 -bvs -o $RUN_NAME-bm.log -d $RUN_NAME.csv --timeout=%d" % \
+                            project.get("benchmark_timeout", conf.get("benchmark_timeout", 3600))
         script.append("if [ $? -eq 0 ]; then")
         script.append(benchmark_cmd)
         script.append("fi")
@@ -1271,9 +1272,9 @@ class BenchmarkRunner(object):
                         logging.info("There has been an update to %s\n", trigger)
                         triggered_by.append(trigger)
 
-        # if new benchmark run is needed:
-        # - create and activate a clean env
-        # - run unit tests, if desired
+        # if benchmark run is triggered:
+        # - check to see if this set of commits has failed
+        # - if commits have not failed or forced, run unit tests
         # - run the benchmark
         # - save benchmark results to database
         # - clean up env and repos
@@ -1309,7 +1310,9 @@ class BenchmarkRunner(object):
                 if not good_commits:
                     logging.info("This set of commits has already failed unit testing.")
 
-            if good_commits or 'force' in triggered_by:
+            forced = 'force' in triggered_by
+
+            if good_commits or forced:
 
                 # make sure our working repo dir exists
                 repo_dir = conf["repo_dir"]
@@ -1324,8 +1327,13 @@ class BenchmarkRunner(object):
 
                     notify = project.get("notify", ["!channel"])
 
+                    # reset flag
+                    good_commits = True
+
+                    # run tests and benchmarks
                     script = project.get("script")
                     if script:
+                        # script has been provided, just run it and check return code
                         logging.info("Running predefined script: %s" % script)
                         rc, out, err = execute_cmd(script, shell=True, combine=True)
                         if rc:
@@ -1340,34 +1348,39 @@ class BenchmarkRunner(object):
                             self.slack.post_file(test_log,
                                                  "\"%s : See attached output file.\"" % self.project["name"])
                     else:
+                        # generate script and then run it
                         script = RunScript(run_name, project, unit_tests, keep_env)
                         script.execute()
 
-                        # check for failed unit test
+                        # check for failed unit tests
                         if unit_tests:
                             test_log = os.path.join(repo_name, "%s.log" % run_name)
                             logging.info("unit test results file: %s", test_log)
                             for line in open(test_log):
                                 if line.startswith("Failed:"):
                                     logging.info("test failures (%s): %s", line.split()[1], line)
-                                    if line.split()[1] != "0":
+                                    test_failures = line.split()[1]
+                                    if  test_failures != "0":
                                         good_commits = False
                                         if self.slack:
-                                            self.slack.post_message("%s However, unit tests failed..." % trigger_msg, notify=notify)
+                                            logging.error("%s However, %s unit test(s) failed...", trigger_msg, test_failures)
+                                            self.slack.post_message("%s However, %s unit test(s) failed..." % (trigger_msg, test_failures), notify=notify)
                                             self.slack.post_file(test_log,
                                                                  "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
 
                         # check for failed benchmarks
-                        if good_commits or not unit_tests:
+                        if good_commits or forced or not unit_tests:
                             benchmark_log = os.path.join(repo_name, "%s-bm.log" % run_name)
                             logging.info("benchmark results file: %s", benchmark_log)
                             for line in open(benchmark_log):
                                 if line.startswith("Failed:"):
                                     logging.info("benchmark failures (%s): %s", line.split()[1], line)
-                                    if line.split()[1] != "0":
+                                    benchmark_fails = line.split()[1]
+                                    if benchmark_fails != "0":
                                         good_commits = False
                                         if self.slack:
-                                            self.slack.post_message("%s However, benchmarks failed..." % trigger_msg, notify=notify)
+                                            logging.error("%s However, %s benchmark(s) failed...", trigger_msg, benchmark_fails)
+                                            self.slack.post_message("%s However, %s benchmark(s) failed..." % (trigger_msg, benchmark_fails), notify=notify)
                                             self.slack.post_file(benchmark_log,
                                                                  "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
 

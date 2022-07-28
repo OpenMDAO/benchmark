@@ -2,29 +2,43 @@
 
 # This script submits a job via SLURM to perform benchmarks with testflo
 #
-# Usage: $0 RUN_NAME CSV_FILE
+# Usage: $0 RUN_NAME -d CSV_FILE -o OUT_FILE -t TIMEOUT
 #
 #     RUN_NAME : the name of the job (Default: YYMMDD_HHMMSS)
 #     CSV_FILE : the file name for the benchmark data (Default: RUN_NAME.csv)
 #     OUT_FILE : the file name for the benchmark results (Default: RUN_NAME-bm.log)
+#     TIMEOUT : the time limit for individual benchmarksin seconds (Default: 2000)
 #
 
-if [ -n "$1" ]; then
-    RUN_NAME=$1;
-else
+args=()
+while [ $OPTIND -le "$#" ]; do
+    echo "OPTIND: $OPTIND"
+    if getopts "o:d:t:" opt; then
+      echo "opt: $opt"
+      case $opt in
+        d) CSV_FILE="$OPTARG";;
+        o) OUT_FILE="$OPTARG";;
+        t) TIMEOUT="$OPTARG";;
+        \?) echo "Invalid option -$OPTARG" >&2; exit 1;;
+      esac
+    else
+      args+=("${!OPTIND}")
+      ((OPTIND++))
+    fi
+done
+
+RUN_NAME=${args[0]}
+if [ -z "$RUN_NAME" ]; then
     RUN_NAME=`date +%Y%m%d_%H%M%S`
 fi
-
-if [ -n "$2" ]; then
-    CSV_FILE=$2;
-else
+if [ -z "$CSV_FILE" ]; then
     CSV_FILE=$RUN_NAME.csv
 fi
-
-if [ -n "$3" ]; then
-    OUT_FILE=$3;
-else
+if [ -z "$OUT_FILE" ]; then
     OUT_FILE=${RUN_NAME}-bm.log
+fi
+if [ -z "$TIMEOUT" ]; then
+    TIMEOUT=2000
 fi
 
 # generate job script
@@ -49,7 +63,7 @@ cat << EOM >$RUN_NAME.sh
 export OMPI_MCA_mpi_warn_on_fork=0
 ulimit -s 10240
 
-testflo -n 1 --timeout=300 -bvs -o $OUT_FILE -d $CSV_FILE
+testflo -n 1 -bvs -o $OUT_FILE -d $CSV_FILE --timeout=$TIMEOUT
 EOM
 
 # submit the job

@@ -20,10 +20,11 @@ eval "$(conda shell.bash hook)"
 
 module load openmpi/4.1.3/gnu/8.5.0
 export OMPI_MCA_rmaps_base_oversubscribe=1
-mpicc --version
+
+module load hypre/2.20.0
 
 #
-# need a python environment with mpi4py and mkdocs 
+# need a python environment with mpi4py and mkdocs
 #
 conda deactivate
 conda deactivate
@@ -37,11 +38,12 @@ fi
 if ! conda env list | grep mach_test; then
   conda create --yes -n mach_test python=3 gxx_linux-64=8.4.0 sysroot_linux-64=2.17 cmake cython swig
   conda activate mach_test
-  conda install --yes -c conda-forge mpi4py petsc4py hypre
+  conda install --yes -c conda-forge mpi4py petsc4py
   pip install mkdocs
 else
   conda activate mach_test
 fi
+mpicc --version
 
 echo "#########################"
 echo "Build ESP"
@@ -132,7 +134,7 @@ cmake .. \\
   -DMETIS_DIR="/lib64/" \\
   -DHYPRE_DIR="/hx/software/apps/hypre/2.20.0/" \\
   -DPUMI_DIR="\$WD/core/build/install" \\
-  -DCMAKE_POSITION_INDEPENDENT_CODE=YES 
+  -DCMAKE_POSITION_INDEPENDENT_CODE=YES
 EOF
 source config_mfem.sh
 make -j

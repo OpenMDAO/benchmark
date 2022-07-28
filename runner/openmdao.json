@@ -30,10 +30,8 @@
     "extras": "[all]",
 
     "postinstall": [
-        "~/dev/build_pyoptsparse/build_pyoptsparse.sh -p `pwd` -s ~/dev/snopt7/src",
-        "export IPOPT_INC=`pwd`/include/coin-or",
-        "export IPOPT_LIB=`pwd`/lib",
-        "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`/lib"
+        "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
+        "build_pyoptsparse -s ~/dev/snopt7/src"
     ],
 
     "notify": [
