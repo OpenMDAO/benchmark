@@ -21,10 +21,6 @@
         "petsc4py"
     ],
 
-    "dependencies": [
-        "sqlitedict"
-    ],
-
     "postinstall": [
         "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
         "build_pyoptsparse -s ~/dev/snopt7/src"
