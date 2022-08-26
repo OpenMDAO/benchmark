@@ -14,7 +14,8 @@
         "python=3",
         "gfortran=12",
         "numpy",
-        "scipy"
+        "scipy",
+        "jupyter-book"
     ],
 
     "conda-forge": [
