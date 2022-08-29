@@ -21,8 +21,6 @@ eval "$(conda shell.bash hook)"
 module load openmpi/4.1.3/gnu/8.5.0
 export OMPI_MCA_rmaps_base_oversubscribe=1
 
-module load hypre/2.20.0
-
 #
 # need a python environment with mpi4py and mkdocs
 #
