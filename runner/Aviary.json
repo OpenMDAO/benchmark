@@ -1,0 +1,40 @@
+{
+    "repository": "git@github.com:OpenMDAO/Aviary",
+
+    "triggers": [
+        "git@github.com:openmdao/OpenMDAO",
+        "git@github.com:openmdao/pyCycle",
+        "git@github.com:openmdao/dymos"
+    ],
+
+    "conda": [
+        "python=3.10",
+        "numpy",
+        "scipy",
+        "matplotlib",
+        "pandas"
+    ],
+
+    "preinstall": [
+        "unset USE_PROC_FILES",
+        "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
+        "build_pyoptsparse -s ~/dev/snopt7/src"
+    ],
+    
+    "dependencies": [
+        "testflo",
+        "pyxdsm"
+    ],
+
+    "postinstall": [
+        "cd aviary/XDSM",
+        "for fn in `ls *.py`; do python $fn; done",
+        "cd ../.."
+    ],
+
+    "notify": [
+        "UF7E0C7NG",
+        "U02BT9BC5",
+        "U02BMJF3M"
+    ]
+}

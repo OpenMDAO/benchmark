@@ -538,8 +538,11 @@ class RunScript(object):
         # run unit tests
         if unit_tests:
             script.append("\n## Run unit tests")
-            script.append("testflo -n 1 --timeout=%d --show_skipped -o $RUN_NAME.log" %
-                          project.get("test_timeout", conf.get("test_timeout", 120)))
+            if "test_cmd" in project:
+                script.append(project.get("test_cmd"))
+            else:
+                script.append("testflo -n 1 --timeout=%d --show_skipped -o $RUN_NAME.log" %
+                              project.get("test_timeout", conf.get("test_timeout", 120)))
 
         # run benchmarks
         script.append("\n## Run benchmarks")
