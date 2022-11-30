@@ -20,14 +20,14 @@
         "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
         "build_pyoptsparse -s ~/dev/snopt7/src"
     ],
-    
+
     "dependencies": [
         "testflo",
         "pyxdsm"
     ],
 
     "postinstall": [
-        "cd aviary/XDSM",
+        "cd aviary/xdsm",
         "for fn in `ls *.py`; do python $fn; done",
         "cd ../.."
     ],
