@@ -36,7 +36,7 @@ fi
 if ! conda env list | grep mach_test; then
   conda create --yes -n mach_test python=3.10 gxx_linux-64=8.4.0 sysroot_linux-64=2.17 cmake cython swig
   conda activate mach_test
-  conda install --yes -c conda-forge mpi4py petsc4py
+  conda install --yes -c conda-forge openmpi mpi4py petsc4py=3.18
   pip install mkdocs
 else
   conda activate mach_test
