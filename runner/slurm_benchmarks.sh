@@ -62,6 +62,7 @@ cat << EOM >$RUN_NAME.sh
 
 export OMPI_MCA_mpi_warn_on_fork=0
 ulimit -s 10240
+unset USE_PROC_FILES
 
 testflo -n 1 -bvs -o $OUT_FILE -d $CSV_FILE --timeout=$TIMEOUT
 EOM
