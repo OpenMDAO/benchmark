@@ -59,7 +59,12 @@
         "echo ==========================",
         "echo pip install",
         "echo ==========================",
-        "pip install ."
+        "pip install .",
+        "echo ==========================",
+        "echo USE_PROC_FILES seems to be",
+        "echo a problem with TACS>3.2.1 ",
+        "echo ==========================",
+        "unset USE_PROC_FILES"
     ],
 
     "notify": [
