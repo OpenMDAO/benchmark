@@ -495,7 +495,8 @@ class RunScript(object):
                 break
             elif spec == "python"  or "python=" in spec or "python\>=" in spec:
                 # self.install("testflo", options="")
-                script.append("pip install testflo")
+                # script.append("pip install testflo")
+                script.append("pip install git+https://github.com/swryan/testflo@benchmark")
                 break
 
         # install triggers
@@ -1196,6 +1197,29 @@ class BenchmarkDatabase(object):
                 logging.error("ERROR attempting remote backup")
                 logging.error(traceback.format_exc())
 
+    def clean_data(self):
+        """
+        Clean the database
+        """
+        self._ensure_commits()
+        self._ensure_benchmark_data()
+
+        min_time = datetime(2018,7,1,0,0).timestamp()
+        max_time = datetime.now().timestamp()
+        print(f"{min_time=} {max_time=}")
+
+        for db in ['Commits', 'BenchmarkData', 'InstalledDeps']:
+            to_delete = []
+
+            with self.connection as c:
+                for row in c.execute(f"SELECT * FROM {db} ORDER BY DateTime"):
+
+                    ts = row[0]
+
+                    if ts < min_time or ts > max_time:
+                        print(f"Removing data from {db} with invalid timestamp: {ts}, {datetime.fromtimestamp(ts)}")
+                        c.execute(f"DELETE FROM {db} WHERE DateTime=?", (ts,))
+
 
 class BenchmarkRunner(object):
     """
@@ -1546,6 +1570,10 @@ def _get_parser():
     parser.add_argument('-e', '--export', metavar='SPEC', action='store', dest='export',
                         help='export benchmark history for SPEC in CSV format')
 
+    parser.add_argument('-l', '--clean', action='store_true', dest='clean',
+                        help='clean invalid data (i.e. with bad timestamps) from data')
+
+
     return parser
 
 
@@ -1604,6 +1632,9 @@ def main(args=None):
             elif options.export:
                 db = BenchmarkDatabase(project_name)
                 db.export_benchmark_data(options.export)
+            elif options.clean:
+                db = BenchmarkDatabase(project_name)
+                db.clean_data()
             else:
                 # use a different repo directory for each project
                 conf["repo_dir"] = os.path.expanduser(
