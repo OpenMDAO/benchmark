@@ -495,8 +495,7 @@ class RunScript(object):
                 break
             elif spec == "python"  or "python=" in spec or "python\>=" in spec:
                 # self.install("testflo", options="")
-                # script.append("pip install testflo")
-                script.append("pip install git+https://github.com/swryan/testflo@benchmark")
+                script.append("pip install testflo")
                 break
 
         # install triggers
@@ -1208,14 +1207,10 @@ class BenchmarkDatabase(object):
         max_time = datetime.now().timestamp()
         print(f"{min_time=} {max_time=}")
 
-        for db in ['Commits', 'BenchmarkData', 'InstalledDeps']:
-            to_delete = []
-
+        for db in ['Commits', 'BenchmarkData', 'InstalledDeps']
             with self.connection as c:
                 for row in c.execute(f"SELECT * FROM {db} ORDER BY DateTime"):
-
                     ts = row[0]
-
                     if ts < min_time or ts > max_time:
                         print(f"Removing data from {db} with invalid timestamp: {ts}, {datetime.fromtimestamp(ts)}")
                         c.execute(f"DELETE FROM {db} WHERE DateTime=?", (ts,))
