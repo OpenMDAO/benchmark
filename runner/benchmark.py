@@ -1207,7 +1207,7 @@ class BenchmarkDatabase(object):
         max_time = datetime.now().timestamp()
         print(f"{min_time=} {max_time=}")
 
-        for db in ['Commits', 'BenchmarkData', 'InstalledDeps']
+        for db in ['Commits', 'BenchmarkData', 'InstalledDeps']:
             with self.connection as c:
                 for row in c.execute(f"SELECT * FROM {db} ORDER BY DateTime"):
                     ts = row[0]
