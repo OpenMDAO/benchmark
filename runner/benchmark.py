@@ -500,10 +500,17 @@ class RunScript(object):
 
         # install triggers
         for trigger in project["triggers"]:
+            if '#' in trigger:
+                repo, branch = trigger.split('#')
+            else:
+                repo = trigger
+                branch = None
             if trigger.endswith("/releases"):
                 trigger = trigger[:-9]
             script.append("\n## Install trigger: %s" % trigger)
-            script.append("cd %s" % trigger.split('/')[-1])
+            script.append("cd %s" % repo.split('/')[-1])
+            if branch:
+                script.append("git checkout %s" % branch)
             script.append("if test -f requirements.txt; then")
             script.append("    pip install -r requirements.txt")
             script.append("fi")
@@ -1382,7 +1389,7 @@ class BenchmarkRunner(object):
                                 if line.startswith("Failed:"):
                                     logging.info("test failures (%s): %s", line.split()[1], line)
                                     test_failures = line.split()[1]
-                                    if  test_failures != "0":
+                                    if test_failures != "0":
                                         good_commits = False
                                         if self.slack:
                                             logging.error("%s However, %s unit test(s) failed...", trigger_msg, test_failures)
@@ -1418,7 +1425,7 @@ class BenchmarkRunner(object):
 
                         # update database with benchmark resuls
                         csv_file = os.path.join(repo_name, "%s.csv" % run_name)
-                        if os.path.exists(csv_file):
+                        if os.path.exists(csv_file) and os.path.getsize(csv_file) > 0:
                             db.add_benchmark_data(current_commits, csv_file, installed_deps)
                             self.post_results(trigger_msg)
                             if conf["remove_csv"]:
