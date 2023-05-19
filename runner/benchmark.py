@@ -1432,6 +1432,7 @@ class BenchmarkRunner(object):
                                 os.remove(csv_file)
                         else:
                             # no benchmarks, just record the commits that passed testing
+                            self.slack.post_message("%s unit testing was successful but no benchmarks were found." % trigger_msg)
                             timestamp = time.time()
                             db.update_commits(current_commits, timestamp)
                     else:
