@@ -546,7 +546,11 @@ class RunScript(object):
         if unit_tests:
             script.append("\n## Run unit tests")
             if "test_cmd" in project:
-                script.append(project.get("test_cmd"))
+                test_cmd = project.get("test_cmd")
+                if isinstance(test_cmd, list):
+                    script.append("\n".join(test_cmd))
+                else:
+                    script.append(test_cmd)
             else:
                 script.append("testflo -n 1 --timeout=%d --show_skipped -o $RUN_NAME.log" %
                               project.get("test_timeout", conf.get("test_timeout", 120)))
@@ -1432,7 +1436,7 @@ class BenchmarkRunner(object):
                                 os.remove(csv_file)
                         else:
                             # no benchmarks, just record the commits that passed testing
-                            self.slack.post_message("%s unit testing was successful but no benchmarks were found." % trigger_msg)
+                            self.slack.post_message("%s Unit testing was successful but no benchmarks were found." % trigger_msg)
                             timestamp = time.time()
                             db.update_commits(current_commits, timestamp)
                     else:
