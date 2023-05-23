@@ -28,8 +28,19 @@
 
     "postinstall": [
         "cd aviary/xdsm",
-        "for fn in `ls *.py`; do python $fn; done",
+        "python run_all.py",
         "cd ../.."
+    ],
+
+    "test_cmd": [
+        "FAIL1=0",
+        "testflo --timeout=120 --show_skipped -o $RUN_NAME.log || FAIL1=$?",
+        "FAIL2=0",
+        "testflo --timeout=1500 --show_skipped -o $RUN_NAME.bench.log --testmatch=bench_test* || FAIL2=$?",
+        "cat $RUN_NAME.bench.log >> $RUN_NAME.log",
+        "if [ $FAIL1 || $FAIL2 ]; then",
+        "  exit 1",
+        "fi"
     ],
 
     "notify": [
