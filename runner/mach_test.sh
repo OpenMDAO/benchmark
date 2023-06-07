@@ -18,11 +18,13 @@ module purge
 module load miniforge/4.10.3
 eval "$(conda shell.bash hook)"
 
-module load openmpi/4.1.3/gnu/8.5.0
+module load openmpi/4.1.4/gnu/11.2.0
+export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
+export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
 export OMPI_MCA_rmaps_base_oversubscribe=1
 
 #
-# need a python environment with mpi4py and mkdocs
+# need a python environment with metis, mpi4py and mkdocs
 #
 conda deactivate
 conda deactivate
@@ -34,14 +36,20 @@ if conda env list | grep mach_test; then
     conda env remove -n mach_test
 fi
 if ! conda env list | grep mach_test; then
-  conda create --yes -n mach_test python=3.10 gxx_linux-64=8.4.0 sysroot_linux-64=2.17 cmake cython swig
+  conda create --yes -n mach_test python=3.10 cython swig metis
   conda activate mach_test
-  conda install --yes -c conda-forge openmpi mpi4py petsc4py=3.18
-  pip install mkdocs
+  export METIS_DIR=$CONDA_PREFIX
+  pip install mpi4py mkdocs
 else
   conda activate mach_test
 fi
-mpicc --version
+
+echo "#########################"
+echo "Install PETSc from source"
+echo "#########################"
+cd ~/dev/petsc
+./configure
+make all check
 
 echo "#########################"
 echo "Build ESP"
@@ -85,9 +93,9 @@ fi
 cd build
 cat <<EOF > config_pumi.sh
 cmake .. \\
-  -DCMAKE_C_COMPILER="mpicc" \\
+  -DCMAKE_C_COMPILER="$MPICC" \\
+  -DCMAKE_CXX_COMPILER="$MPICXX" \\
   -DCMAKE_POSITION_INDEPENDENT_CODE="YES" \\
-  -DCMAKE_CXX_COMPILER="mpicxx" \\
   -DSCOREC_CXX_OPTIMIZE=ON \\
   -DSCOREC_CXX_SYMBOLS=ON \\
   -DSCOREC_CXX_WARNINGS=OFF \\
@@ -129,7 +137,7 @@ cmake .. \\
   -DMFEM_USE_PUMI=YES \\
   -DMFEM_ENABLE_EXAMPLES=NO \\
   -DMFEM_ENABLE_MINIAPPS=NO \\
-  -DMETIS_DIR="/lib64/" \\
+  -DMETIS_DIR="$METIS_DIR" \\
   -DHYPRE_DIR="/hx/software/apps/hypre/2.20.0/" \\
   -DPUMI_DIR="\$WD/core/build/install" \\
   -DCMAKE_POSITION_INDEPENDENT_CODE=YES
