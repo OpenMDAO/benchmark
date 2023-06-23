@@ -12,9 +12,7 @@
 
 args=()
 while [ $OPTIND -le "$#" ]; do
-    echo "OPTIND: $OPTIND"
     if getopts "o:d:t:" opt; then
-      echo "opt: $opt"
       case $opt in
         d) CSV_FILE="$OPTARG";;
         o) OUT_FILE="$OPTARG";;
