@@ -1255,9 +1255,6 @@ class BenchmarkRunner(object):
         project = self.project
         db = self.db
 
-        current_commits = {}
-        triggered_by = []
-
         # initialize log file
         timestr = time.strftime("%Y%m%d-%H%M%S")
         run_name = project["name"] + "_" + timestr
@@ -1268,42 +1265,9 @@ class BenchmarkRunner(object):
 
         # determine if a new benchmark run is needed, this may be due to the
         # project repo or a trigger repo being updated or the `force` option
+        triggered_by, current_commits = self.check_triggers()
         if force:
             triggered_by.append('force')
-
-        triggers = project.get("triggers", [])
-
-        for trigger in triggers + [project["repository"]]:
-            if trigger.endswith("/releases"):
-                check_release = True
-                trigger = trigger[:-9]
-            else:
-                check_release = False
-
-            if '#' in trigger:
-                trigger, branch = trigger.split('#')
-            else:
-                branch = None
-
-            trigger = os.path.expanduser(trigger)
-
-            # check each trigger for any update since last run
-            with repo(trigger, branch):
-                logging.info('checking trigger ' + trigger + ' ' + branch if branch else '')
-                current_commits[trigger] = get_current_commit(trigger)
-                logging.info("Curr CommitID: %s", current_commits[trigger])
-                last_commit = str(db.get_last_commit(trigger))
-                logging.info("Last CommitID: %s", last_commit)
-                if (last_commit != current_commits[trigger]):
-                    if check_release:
-                        # new commit, but is it a release?
-                        release_tag, release_commit = get_tag_info()
-                        if current_commits[trigger] == release_commit:
-                            logging.info("There has been a new release for %s\n", trigger)
-                            triggered_by.append(trigger)
-                    else:
-                        logging.info("There has been an update to %s\n", trigger)
-                        triggered_by.append(trigger)
 
         # if benchmark run is triggered:
         # - check to see if this set of commits has failed
@@ -1316,34 +1280,12 @@ class BenchmarkRunner(object):
             logging.info("Benchmark triggered by updates to: %s", str(triggered_by))
             trigger_msg = self.get_trigger_message(triggered_by, current_commits)
 
-            conda_spec =  project.get("conda", [])
-            dependencies = project.get("dependencies", [])
-
             # if unit testing fails, the current set of commits will be recorded in fail_file
             fail_file = os.path.join(conf['working_dir'], project["name"]+".fail")
 
-            # start out assuming we have a good set of commits
-            good_commits = True
-
-            # if unit testing is enabled, then check that we have not already failed unit testing
-            if unit_tests:
-                if os.path.exists(fail_file):
-                    good_commits = False
-                    failed_commits = read_json(fail_file)
-                    for key in current_commits:
-                        if current_commits[key] != failed_commits[key]:
-                            # there has been a new commit, set flag to run and delete fail_file
-                            logging.info("found new commit for %s", key)
-                            logging.info("old commit: %s", failed_commits[key])
-                            logging.info("new commit: %s", current_commits[key])
-                            good_commits = True
-                            os.remove(fail_file)
-                            break
-
-                if not good_commits:
-                    logging.info("This set of commits has already failed unit testing.")
-
             forced = 'force' in triggered_by
+
+            good_commits = self.check_good_commits(current_commits, fail_file)
 
             if good_commits or forced:
 
@@ -1402,7 +1344,7 @@ class BenchmarkRunner(object):
                                                                  "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
 
                         # check for failed benchmarks
-                        if good_commits or forced or not unit_tests:
+                        if good_commits or not unit_tests:
                             benchmark_log = os.path.join(repo_name, "%s-bm.log" % run_name)
                             logging.info("benchmark results file: %s", benchmark_log)
                             for line in open(benchmark_log):
@@ -1438,7 +1380,7 @@ class BenchmarkRunner(object):
                             # no benchmarks, just record the commits that passed testing
                             timestamp = time.time()
                             db.update_commits(current_commits, timestamp)
-                            if not script:
+                            if not project.get("script"):
                                 msg = "%s Unit testing was successful (no benchmarks found)."
                                 self.slack.post_message(msg % trigger_msg)
                     else:
@@ -1456,6 +1398,109 @@ class BenchmarkRunner(object):
 
         # close the log file for this run
         close_log_file()
+
+    def check_triggers(self):
+        """
+        Determine which repos have new commits, triggering a benchmark run.
+        """
+        triggered_by = []
+        current_commits = {}
+
+        project = self.project
+        db = self.db
+
+        triggers = project.get("triggers", [])
+
+        for trigger in triggers + [project["repository"]]:
+            if trigger.endswith("/releases"):
+                check_release = True
+                trigger = trigger[:-9]
+            else:
+                check_release = False
+
+            if '#' in trigger:
+                trigger, branch = trigger.split('#')
+            else:
+                branch = None
+
+            trigger = os.path.expanduser(trigger)
+
+            # check each trigger for any update since last run
+            with repo(trigger, branch):
+                logging.info('checking trigger ' + trigger + ' ' + branch if branch else '')
+                current_commits[trigger] = get_current_commit(trigger)
+                logging.info("Curr CommitID: %s", current_commits[trigger])
+                last_commit = str(db.get_last_commit(trigger))
+                logging.info("Last CommitID: %s", last_commit)
+                if (last_commit != current_commits[trigger]):
+                    if check_release:
+                        # new commit, but is it a release?
+                        release_tag, release_commit = get_tag_info()
+                        if current_commits[trigger] == release_commit:
+                            logging.info("There has been a new release for %s\n", trigger)
+                            triggered_by.append(trigger)
+                    else:
+                        logging.info("There has been an update to %s\n", trigger)
+                        triggered_by.append(trigger)
+
+        return triggered_by, current_commits
+
+    def get_trigger_message(self, triggered_by, current_commits):
+        """
+        list specific commits (in link form) that triggered benchmarks to run
+        """
+        name = self.project["name"]
+
+        if "url" in conf:
+            pretext = "<%s|%s> benchmarks triggered by " % (conf["url"]+name, name)
+        else:
+            pretext = "*%s* benchmarks triggered by " % name
+
+        if "force" in triggered_by:
+            pretext = pretext + "force:\n"
+        else:
+            links = []
+            # add the specific commit information to each trigger
+            for url in triggered_by:
+                if "bitbucket" in url:
+                    commit = "/commits/"
+                else:
+                    commit = "/commit/"
+                links.append(url + commit + str(current_commits[url]).strip('\n'))
+
+            # insert proper formatting so long URL text is replaced by short trigger-name hyperlink
+            links = ["<%s|%s>" % (url.replace("git@github.com:", "https://github.com/"), url.split('/')[-3])
+                     for url in links]
+
+            pretext = pretext + "updates to: " + ", ".join(links) + "\n"
+
+        return pretext
+
+    def check_good_commits(self, current_commits, fail_file):
+        """
+        Check if this
+        """
+        # start out assuming we have a good set of commits
+        good_commits = True
+
+        # if unit testing is enabled, then check that we have not already failed unit testing
+        if os.path.exists(fail_file):
+            good_commits = False
+            failed_commits = read_json(fail_file)
+            for key in current_commits:
+                if current_commits[key] != failed_commits[key]:
+                    # there has been a new commit, set flag to run and delete fail_file
+                    logging.info("found new commit for %s", key)
+                    logging.info("old commit: %s", failed_commits[key])
+                    logging.info("new commit: %s", current_commits[key])
+                    good_commits = True
+                    os.remove(fail_file)
+                    break
+
+        if not good_commits:
+            logging.info("This set of commits has already failed unit testing.")
+
+        return good_commits
 
     def post_results(self, trigger_msg):
         """
@@ -1510,37 +1555,6 @@ class BenchmarkRunner(object):
                     msg = '\n'.join(mem_messages[:max_messages])
                     self.slack.post_message(msg)
                     mem_messages = mem_messages[max_messages:]
-
-    def get_trigger_message(self, triggered_by, current_commits):
-        """
-        list specific commits (in link form) that triggered benchmarks to run
-        """
-        name = self.project["name"]
-
-        if "url" in conf:
-            pretext = "<%s|%s> benchmarks triggered by " % (conf["url"]+name, name)
-        else:
-            pretext = "*%s* benchmarks triggered by " % name
-
-        if "force" in triggered_by:
-            pretext = pretext + "force:\n"
-        else:
-            links = []
-            # add the specific commit information to each trigger
-            for url in triggered_by:
-                if "bitbucket" in url:
-                    commit = "/commits/"
-                else:
-                    commit = "/commit/"
-                links.append(url + commit + str(current_commits[url]).strip('\n'))
-
-            # insert proper formatting so long URL text is replaced by short trigger-name hyperlink
-            links = ["<%s|%s>" % (url.replace("git@github.com:", "https://github.com/"), url.split('/')[-3])
-                     for url in links]
-
-            pretext = pretext + "updates to: " + ", ".join(links) + "\n"
-
-        return pretext
 
 
 #
