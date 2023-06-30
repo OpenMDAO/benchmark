@@ -26,6 +26,7 @@
         "psutil",
         "objgraph",
         "git+https://github.com/mdolab/pyxdsm",
+        "jax",
         "jaxlib"
     ],
 
