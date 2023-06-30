@@ -552,7 +552,7 @@ class RunScript(object):
                 else:
                     script.append(test_cmd)
             else:
-                script.append("testflo -n 1 --timeout=%d --show_skipped -o $RUN_NAME.log" %
+                script.append("testflo -n 1 --timeout=%d --durations=25 --show_skipped -o $RUN_NAME.log" %
                               project.get("test_timeout", conf.get("test_timeout", 120)))
 
         # run benchmarks
