@@ -25,6 +25,7 @@
 
     "conda-forge": [
         "mpi4py",
+        "metis=5.1.0",
         "petsc4py"
     ],
 
