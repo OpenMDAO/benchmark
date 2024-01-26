@@ -8,7 +8,7 @@
     ],
 
     "conda": [
-        "python=3.10",
+        "python=3.12",
         "numpy",
         "scipy",
         "matplotlib",
@@ -22,14 +22,11 @@
     ],
 
     "dependencies": [
-        "testflo",
+        "matplotlib",
+        "pandas",
+        "panel",
+        "hvplot",
         "pyxdsm"
-    ],
-
-    "postinstall": [
-        "cd aviary/xdsm",
-        "python run_all.py",
-        "cd ../.."
     ],
 
     "test_cmd": [
