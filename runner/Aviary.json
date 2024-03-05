@@ -7,12 +7,30 @@
         "git@github.com:openmdao/dymos"
     ],
 
+    "apptainer": "~/dev/bookworm/bookworm.sif",
+
+    "script_prefix": [
+        "#!/bin/bash",
+        "set -e",
+        "",
+        "eval \"$(/mdao/u/swryan/miniforge3/bin/conda shell.bash hook)\"",
+        "",
+        "source ~/dev/bookworm/NPSSv32_src/dev/npss.env.sh",
+        "",
+        "export TMPDIR=~/tmp",
+        "export OMPI_MCA_rmaps_base_oversubscribe=1",
+        "export mpi_warn_on_fork=0"
+    ],
+
     "conda": [
         "python=3.12",
         "numpy",
-        "scipy",
-        "matplotlib",
-        "pandas"
+        "scipy"
+    ],
+
+    "conda-forge": [
+        "mpi4py",
+        "petsc4py"
     ],
 
     "preinstall": [
@@ -26,7 +44,9 @@
         "pandas",
         "panel",
         "hvplot",
-        "pyxdsm"
+        "pyxdsm",
+        "ambiance",
+        "openaerostruct"
     ],
 
     "test_cmd": [
@@ -39,6 +59,8 @@
         "  exit 1",
         "fi"
     ],
+
+    "benchmark_cmd": "",
 
     "notify": [
         "UF7E0C7NG",
