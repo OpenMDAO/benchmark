@@ -1,5 +1,5 @@
 {
-    "repository": "git@github.com:chapman178/om-Aviary#NPSS_wrapper",
+    "repository": "git@github.com:OpenMDAO/Aviary",
 
     "triggers": [
         "git@github.com:openmdao/OpenMDAO",
