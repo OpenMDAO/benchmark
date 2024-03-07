@@ -128,16 +128,20 @@ def init_env(project_info):
             env[key] = val
 
 
-def execute_cmd(cmd, shell=False, combine=False):
+
+def execute_cmd(cmd, shell=False, merge_streams=False, stdin=None):
     """
     Execute the external command and get its exitcode, stdout and stderr.
     """
     logging.info("> %s", cmd)
-    args = shlex.split(cmd)
-    if combine:
-        proc = Popen(args, stdout=PIPE, stderr=subprocess.STDOUT, shell=shell, env=env, universal_newlines=True)
+
+    if not shell:
+        cmd = shlex.split(cmd)
+
+    if merge_streams:
+        proc = Popen(cmd, stdin=stdin, stdout=PIPE, stderr=subprocess.STDOUT, shell=shell, env=env, universal_newlines=True)
     else:
-        proc = Popen(args, stdout=PIPE, stderr=PIPE, shell=shell, env=env, universal_newlines=True)
+        proc = Popen(cmd, stdin=stdin, stdout=PIPE, stderr=PIPE, shell=shell, env=env, universal_newlines=True)
     out, err = proc.communicate()
 
     rc = proc.returncode
@@ -410,6 +414,7 @@ class RunScript(object):
         Create conda env, install dependencies and then local repositories.
         """
         self.run_name = run_name
+        self.apptainer = project.get("apptainer")
 
         self.script = script = []
 
@@ -557,7 +562,7 @@ class RunScript(object):
 
         # run benchmarks
         script.append("\n## Run benchmarks")
-        benchmark_cmd = conf.get("benchmark_cmd")
+        benchmark_cmd = project.get("benchmark_cmd", conf.get("benchmark_cmd"))
         if benchmark_cmd:
             benchmark_cmd = "%s $RUN_NAME -o $RUN_NAME-bm.log -d $RUN_NAME.csv -t %s" % (benchmark_cmd,
                             project.get("benchmark_timeout", conf.get("benchmark_timeout", 3600)))
@@ -586,7 +591,13 @@ class RunScript(object):
             f.write("\n".join(self.script))
 
         execute_cmd("chmod +x %s" % filename)
-        execute_cmd("./%s" % filename, shell=True)
+
+        if self.apptainer:
+            # run the script in the specified container
+            cmd = "apptainer exec %s ./%s" % (os.path.expanduser(self.apptainer), filename)
+            execute_cmd(cmd, shell=True)
+        else:
+            execute_cmd("./%s" % filename, shell=True)
 
 
 class Slack(object):

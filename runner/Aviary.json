@@ -7,26 +7,27 @@
         "git@github.com:openmdao/dymos"
     ],
 
+    "preinstall": [
+        "unset USE_PROC_FILES",
+        "source ~/dev/NPSSv32_src/dev/npss.env.sh"
+    ],
+
     "conda": [
         "python=3.12",
         "numpy",
-        "scipy",
-        "matplotlib",
-        "pandas"
+        "scipy"
     ],
 
-    "preinstall": [
-        "unset USE_PROC_FILES",
+    "conda-forge": [
+        "mpi4py",
+        "petsc4py"
+    ],
+
+    "extras": "[all]",
+
+    "postinstall": [
         "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
         "build_pyoptsparse -b v2.10.1 -s ~/dev/snopt7/src"
-    ],
-
-    "dependencies": [
-        "matplotlib",
-        "pandas",
-        "panel",
-        "hvplot",
-        "pyxdsm"
     ],
 
     "test_cmd": [
@@ -35,10 +36,12 @@
         "FAIL2=0",
         "testflo --timeout=1500 --show_skipped -o $RUN_NAME.bench.log --testmatch=bench_test* || FAIL2=$?",
         "cat $RUN_NAME.bench.log >> $RUN_NAME.log",
-        "if [ $FAIL1 || $FAIL2 ]; then",
+        "if [ $FAIL1 -ne 0 ] || [ $FAIL2 -ne 0 ]; then",
         "  exit 1",
         "fi"
     ],
+
+    "benchmark_cmd": "",
 
     "notify": [
         "UF7E0C7NG",
