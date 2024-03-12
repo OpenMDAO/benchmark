@@ -1115,8 +1115,10 @@ class BenchmarkDatabase(object):
                 a1.set_xticks([])
                 a2.xaxis.set_minor_locator(mondays)
                 a2.xaxis.set_major_formatter(weekFmt)
-                for tick in a2.xaxis.get_major_ticks():
-                    tick.label.set_fontsize('x-small')
+                pyplot.xticks(fontsize='x-small')
+
+                # for tick in a2.xaxis.get_major_ticks():
+                #     tick.label.set_fontsize('x-small')
                 # pyplot.xticks(rotation=45)
 
                 pyplot.legend(plot_specs, loc=9, prop={'size': 8}, bbox_to_anchor=(0.5, -0.2))
@@ -1593,7 +1595,7 @@ def _get_parser():
                         help='keep the created conda env after execution (usually for troubleshooting purposes)')
 
     parser.add_argument('-p', '--plot', metavar='SPEC', action='store', dest='plot',
-                        help='plot benchmark history for SPEC')
+                        help="plot benchmark history for SPEC, use 'all' for all benchmarks")
 
     parser.add_argument('-c', '--check', action='store_true', dest='check',
                         help='check the most recent benchmark data for significant change')
@@ -1606,7 +1608,6 @@ def _get_parser():
 
     parser.add_argument('-l', '--clean', action='store_true', dest='clean',
                         help='clean invalid data (i.e. with bad timestamps) from data')
-
 
     return parser
 
