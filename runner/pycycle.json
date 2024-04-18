@@ -10,8 +10,7 @@
     ],
 
     "conda": [
-        "python=3",
-        "gfortran=12",
+        "python=3.12",
         "numpy",
         "scipy"
     ],

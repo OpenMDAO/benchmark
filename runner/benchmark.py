@@ -1323,7 +1323,7 @@ class BenchmarkRunner(object):
                     if script:
                         # script has been provided, just run it and check return code
                         logging.info("Running predefined script: %s" % script)
-                        rc, out, err = execute_cmd(script, shell=True, combine=True)
+                        rc, out, err = execute_cmd(script, shell=True, merge_streams=True)
                         if rc:
                             good_commits = False
                             self.slack.post_message("%s However, testing failed..." % trigger_msg, notify=notify)

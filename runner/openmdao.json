@@ -9,11 +9,9 @@
     ],
 
     "conda": [
-        "python=3.10",
-        "gfortran=12",
+        "python=3.12",
         "numpy",
-        "scipy",
-        "jupyter-book"
+        "scipy"
     ],
 
     "conda-forge": [
