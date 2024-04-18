@@ -185,6 +185,7 @@ cat <<EOF > mach_config.sh
 cmake .. \\
  -DCMAKE_BUILD_TYPE="Release" \\
  -DADEPT_DIR="../Adept-2/" \\
+ -DAdept_INCLUDE_DIR="../Adept-2/include/" \\
  -DMFEM_DIR="../mfem/build/" \\
  -DPUMI_DIR="../core/build/install" \\
  -DEGADS_DIR="../EngSketchPad/" \\

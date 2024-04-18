@@ -2,8 +2,7 @@
     "repository": "git@github.com:openmdao/dymos",
 
     "triggers": [
-        "git@github.com:openmdao/OpenMDAO",
-        "git@github.com:openmdao/MBI"
+        "git@github.com:openmdao/OpenMDAO"
     ],
 
     "preinstall": [
@@ -11,11 +10,9 @@
     ],
 
     "conda": [
-        "python=3.10",
-        "gfortran=12",
+        "python=3.12",
         "numpy",
-        "scipy",
-        "jupyter-book"
+        "scipy"
     ],
 
     "conda-forge": [
