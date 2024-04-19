@@ -32,16 +32,16 @@ conda deactivate
 echo "#########################"
 echo "Create Environment"
 echo "#########################"
-if conda env list | grep mach_test; then
-    conda env remove -n mach_test
+if conda env list | grep miso_test; then
+    conda env remove -n miso_test
 fi
-if ! conda env list | grep mach_test; then
-  conda create --yes -n mach_test python=3.10 cython swig metis
-  conda activate mach_test
+if ! conda env list | grep miso_test; then
+  conda create --yes -n miso_test python=3.10 cython swig metis
+  conda activate miso_test
   export METIS_DIR=$CONDA_PREFIX
   pip install mpi4py mkdocs
 else
-  conda activate mach_test
+  conda activate miso_test
 fi
 
 echo "#########################"
@@ -166,14 +166,14 @@ make install
 set -e
 
 echo "#########################"
-echo "Build MACH"
+echo "Build MISO"
 echo "#########################"
 cd $WD
-if [ ! -d "mach" ]; then
-  git clone git@github.com:OptimalDesignLab/mach.git
+if [ ! -d "miso" ]; then
+  git clone git@github.com:OptimalDesignLab/miso.git
 fi
 
-cd mach
+cd miso
 git checkout dev
 git pull
 
@@ -181,10 +181,10 @@ if [ ! -d "build" ]; then
   mkdir build
 fi
 cd build
-cat <<EOF > mach_config.sh
+cat <<EOF > miso_config.sh
 cmake .. \\
  -DCMAKE_BUILD_TYPE="Release" \\
- -DADEPT_DIR="../Adept-2/" \\
+ -DAdept_ROOT="../Adept-2/" \\
  -DAdept_INCLUDE_DIR="../Adept-2/include/" \\
  -DMFEM_DIR="../mfem/build/" \\
  -DPUMI_DIR="../core/build/install" \\
@@ -193,9 +193,9 @@ cmake .. \\
  -DBUILD_PYTHON_WRAPPER="YES"
 EOF
 set +e
-source mach_config.sh
+source miso_config.sh
 set -e
-source mach_config.sh
+source miso_config.sh
 make -j
 make build_tests -j
 ctest --output-on-failure
@@ -215,13 +215,13 @@ git pull
 pip install --upgrade -e .[test]
 
 echo "#########################"
-echo "Test mach python wrapper"
+echo "Test miso python wrapper"
 echo "#########################"
 cd $WD
-cd mach
+cd miso
 pip install --upgrade -e .
 
 conda list
 
 # disabled for now
-#testflo --timeout=120 -vs mach/test
+#testflo --timeout=120 -vs miso/test
