@@ -1,5 +1,5 @@
 {
-    "repository": "git@github.com:OptimalDesignLab/mach#dev",
+    "repository": "git@github.com:OptimalDesignLab/miso#dev",
 
     "triggers": [
         "git@github.com:tuckerbabcock/EngSketchPad#beta",
@@ -9,7 +9,7 @@
         "git@github.com:openmdao/OpenMDAO"
     ],
 
-    "script": "mach_test.sh",
+    "script": "miso_test.sh",
 
     "notify": [
         "U015BG2A78S",
