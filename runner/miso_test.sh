@@ -177,6 +177,9 @@ cd miso
 git checkout dev
 git pull
 
+sed -i 's/mach/miso/g' ./miso/pyMISO/CMakeLists.txt
+sed -i 's/Mach/MISO/g' ./miso/pyMISO/CMakeLists.txt
+
 if [ ! -d "build" ]; then
   mkdir build
 fi
@@ -185,7 +188,6 @@ cat <<EOF > miso_config.sh
 cmake .. \\
  -DCMAKE_BUILD_TYPE="Release" \\
  -DAdept_ROOT="../Adept-2/" \\
- -DAdept_INCLUDE_DIR="../Adept-2/include/" \\
  -DMFEM_DIR="../mfem/build/" \\
  -DPUMI_DIR="../core/build/install" \\
  -DEGADS_DIR="../EngSketchPad/" \\
