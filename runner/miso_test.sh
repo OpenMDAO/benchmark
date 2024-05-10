@@ -158,7 +158,7 @@ git pull
 touch README
 aclocal; autoupdate; autoheader; autoconf
 libtoolize; autoreconf -i
-./configure --prefix="$PWD"
+./configure --prefix="$PWD/../adept_install"
 make
 make check
 set +e
@@ -187,10 +187,10 @@ cd build
 cat <<EOF > miso_config.sh
 cmake .. \\
  -DCMAKE_BUILD_TYPE="Release" \\
- -DAdept_ROOT="../Adept-2/" \\
- -DMFEM_DIR="../mfem/build/" \\
- -DPUMI_DIR="../core/build/install" \\
- -DEGADS_DIR="../EngSketchPad/" \\
+ -DAdept_ROOT="$PWD/../../adept_install/" \\
+ -DMFEM_DIR="$PWD/../../mfem/build/" \\
+ -DPUMI_DIR="$PWD/../../core/build/install" \\
+ -DEGADS_DIR="$PWD/../../EngSketchPad/" \\
  -DBUILD_TESTING="YES" \\
  -DBUILD_PYTHON_WRAPPER="YES"
 EOF
