@@ -44,7 +44,6 @@
     "benchmark_cmd": "",
 
     "notify": [
-        "!subteam^S0775TX0B8F",
-        "U02BT9BC5"
+        "!subteam^S0775TX0B8F"
     ]
 }
