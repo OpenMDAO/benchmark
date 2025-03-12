@@ -39,7 +39,7 @@
         "build_pyoptsparse -b $LATEST_VER -s ~/dev/snopt7/src"
     ],
 
-    "notify": [
+    "NOnotify": [
         "!subteam^S01PJ2C9GPN"
     ]
 }

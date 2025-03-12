@@ -43,7 +43,7 @@
 
     "benchmark_cmd": "",
 
-    "notify": [
+    "NOnotify": [
         "!subteam^S0775TX0B8F"
     ]
 }
