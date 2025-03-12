@@ -33,7 +33,7 @@
         "build_pyoptsparse -b v2.10.1 -s ~/dev/snopt7/src"
     ],
 
-    "notify": [
+    "NOnotify": [
         "!subteam^S01PJ2C9GPN"
     ]
 }

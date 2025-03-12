@@ -16,6 +16,9 @@ import json
 import csv
 import math
 
+import requests
+from slack_sdk import WebClient
+
 from datetime import datetime
 
 import logging
@@ -498,7 +501,7 @@ class RunScript(object):
                 # self.install("testflo<1.4", options="")
                 script.append("pip install testflo<1.4")
                 break
-            elif spec == "python"  or "python=" in spec or "python\>=" in spec:
+            elif spec == "python"  or "python=" in spec or r"python\>=" in spec:
                 # self.install("testflo", options="")
                 script.append("pip install testflo")
                 break
@@ -670,31 +673,46 @@ class Slack(object):
 
         return code
 
-    def post_file(self, filename, title):
+    def post_file(self, filename):
         """
         post a file to slack
         """
-        if not "channel" in self.cfg or not "token" in self.cfg:
-            msg = "'channel' and/or 'token' not found.. Cannot post file '%s' (%s) to slack" % (filename, title)
+        channel_id = self.cfg["channel_id"]
+        if not channel_id:
+            msg = "'channel_id' not found.. Cannot post file '%s' (%s) to slack" % (filename)
             logging.warning(msg)
             return -1
 
-        cmd = "curl -s "
+        # Initialize the Slack client
+        slack_bot_token = self.cfg["SLACK_BOT_TOKEN"]
+        client = WebClient(token=slack_bot_token)
 
-        cmd += "-F file=@%s -F title=%s -F filename=%s -F channels=%s -F token=%s " % \
-               (filename, title, filename, self.cfg["channel"], self.cfg["token"])
+        try:
+            print("Uploading file to Slack...", filename)
 
-        if self.ca:
-            cmd += "--cacert %s --capath %s " % (self.ca["cacert"], self.ca["capath"])
+            # Get upload URL
+            response = client.files_getUploadURLExternal(filename=filename, length=os.path.getsize(filename))
+            upload_url = response["upload_url"]
+            file_id = response["file_id"]
 
-        cmd += "https://slack.com/api/files.upload"
+            print(f"{upload_url=} {file_id=}")
 
-        code, out, err = execute_cmd(cmd)
+            # Upload file
+            with open(filename, "rb") as file_data:
+                headers = {"Content-Type": "application/octet-stream"}
+                upload_response = requests.post(upload_url, data=file_data, headers=headers)
+                upload_response.raise_for_status()
 
-        if code:
-            logging.warning("Could not post file to slack:\n%s\n%s", out, err)
+            # Complete upload
+            complete_response = client.files_completeUploadExternal(
+                files=[{"id": file_id}], channel_id=channel_id
+            )
 
-        return code
+        except Exception as e:
+            logging.warning("Could not post file to slack:\n%s", str(e))
+            return 1
+
+        return 0
 
 
 class BenchmarkDatabase(object):
@@ -1333,8 +1351,7 @@ class BenchmarkRunner(object):
                             test_log = os.path.join(repo_name, "%s.txt" % run_name)
                             with open(test_log, "w") as f:
                                 f.write(out)
-                            self.slack.post_file(test_log,
-                                                 "\"%s : See attached output file.\"" % self.project["name"])
+                            self.slack.post_file(test_log)
                     else:
                         # generate script and then run it
                         script = RunScript(run_name, project, unit_tests, keep_env)
@@ -1353,8 +1370,7 @@ class BenchmarkRunner(object):
                                         if self.slack:
                                             logging.error("%s However, %s unit test(s) failed...", trigger_msg, test_failures)
                                             self.slack.post_message("%s However, %s unit test(s) failed..." % (trigger_msg, test_failures), notify=notify)
-                                            self.slack.post_file(test_log,
-                                                                 "\"%s : regression testing has failed. See attached results file.\"" % self.project["name"])
+                                            self.slack.post_file(test_log)
 
                         # check for failed benchmarks
                         if good_commits or not unit_tests:
@@ -1369,8 +1385,7 @@ class BenchmarkRunner(object):
                                         if self.slack:
                                             logging.error("%s However, %s benchmark(s) failed...", trigger_msg, benchmark_fails)
                                             self.slack.post_message("%s However, %s benchmark(s) failed..." % (trigger_msg, benchmark_fails), notify=notify)
-                                            self.slack.post_file(benchmark_log,
-                                                                 "\"%s : benchmarking has failed. See attached results file.\"" % self.project["name"])
+                                            self.slack.post_file(benchmark_log)
 
                     if good_commits:
                         # get list of installed dependencies
@@ -1560,7 +1575,7 @@ class BenchmarkRunner(object):
                     self.slack.post_message(msg)
                     cpu_messages = cpu_messages[max_messages:]
                 if os.path.exists("top.txt"):
-                    self.slack.post_file("top.txt", "Top 10 CPU before and after")
+                    self.slack.post_file("top.txt")  #, "Top 10 CPU before and after")
 
             if mem_messages:
                 self.slack.post_message(notify % (name, "memory usage"))
