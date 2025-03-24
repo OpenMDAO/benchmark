@@ -49,6 +49,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.PY }}
+          channels: conda-forge
+
       - name: Check Repos
         if: inputs.project_name == ''
         run: |
@@ -68,4 +75,5 @@ jobs:
           cd data
           wget openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
           cd ..
+          pip install slack_sdk matplaotlib
           python benchmark.py -u ${{ inputs.project_name }}.json
