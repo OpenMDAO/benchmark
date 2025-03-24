@@ -51,6 +51,7 @@ conf = {
     "script_prefix": [
         "#!/bin/bash",
         "set -e",
+        "set -v",
         "eval \"$(conda shell.bash hook)\""
     ],
 
