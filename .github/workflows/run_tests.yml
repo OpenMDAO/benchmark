@@ -75,5 +75,5 @@ jobs:
           cd data
           wget openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
           cd ..
-          pip install slack_sdk matplaotlib
+          pip install slack_sdk matplotlib
           python benchmark.py -u ${{ inputs.project_name }}.json
