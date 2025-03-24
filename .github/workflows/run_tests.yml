@@ -49,17 +49,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-
       - name: Setup conda
         uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.PY }}
           channels: conda-forge
+          auto-activate-base: true
+          activate-environment: ""
 
       - name: Check Repos
         if: inputs.project_name == ''
         run: |
-          conda activate test
           echo "============================================================="
           echo "Check for updates to any configured projects
           echo "============================================================="
@@ -68,7 +68,6 @@ jobs:
       - name: Test ${{ inputs.project_name }}
         if: inputs.project_name != ''
         run: |
-          conda activate test
           echo "============================================================="
           echo "Test ${{ inputs.project_name }}"
           echo "============================================================="
