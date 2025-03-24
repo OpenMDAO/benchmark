@@ -67,4 +67,4 @@ jobs:
           cd data
           wget openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
           cd ..
-          ./benchmark.py -u ${{ inputs.project_name }}.json
+          python benchmark.py -u ${{ inputs.project_name }}.json
