@@ -59,6 +59,7 @@ jobs:
       - name: Check Repos
         if: inputs.project_name == ''
         run: |
+          conda activate test
           echo "============================================================="
           echo "Check for updates to any configured projects
           echo "============================================================="
@@ -67,13 +68,14 @@ jobs:
       - name: Test ${{ inputs.project_name }}
         if: inputs.project_name != ''
         run: |
+          conda activate test
           echo "============================================================="
           echo "Test ${{ inputs.project_name }}"
           echo "============================================================="
           cd runner
           mkdir data
           cd data
-          wget openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
+          wget -q openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
           cd ..
           pip install slack_sdk matplotlib
           python benchmark.py -u ${{ inputs.project_name }}.json
