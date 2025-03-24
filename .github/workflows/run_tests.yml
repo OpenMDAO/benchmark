@@ -36,7 +36,7 @@ jobs:
 
     steps:
 
-      - name: Create SSH key
+      - name: create SSH key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
@@ -46,10 +46,10 @@ jobs:
           sudo chmod 600 ~/.ssh/id_rsa
           echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
-      - name: Checkout code
+      - name: checkout code
         uses: actions/checkout@v4
 
-      - name: Setup conda
+      - name: setup conda
         uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.PY }}
@@ -57,7 +57,12 @@ jobs:
           auto-activate-base: true
           activate-environment: ""
 
-      - name: Check Repos
+      - name: conda init
+        run: |
+          conda init
+          pip install slack_sdk matplotlib
+
+      - name: check Repos
         if: inputs.project_name == ''
         run: |
           echo "============================================================="
@@ -65,7 +70,7 @@ jobs:
           echo "============================================================="
           ./benchmark.py -u *.json
 
-      - name: Test ${{ inputs.project_name }}
+      - name: test ${{ inputs.project_name }}
         if: inputs.project_name != ''
         run: |
           echo "============================================================="
@@ -76,5 +81,4 @@ jobs:
           cd data
           wget -q openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
           cd ..
-          pip install slack_sdk matplotlib
           python benchmark.py -u ${{ inputs.project_name }}.json
