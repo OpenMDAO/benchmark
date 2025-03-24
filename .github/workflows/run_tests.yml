@@ -63,6 +63,7 @@ jobs:
           echo "============================================================="
           echo "Test ${{ inputs.project_name }}"
           echo "============================================================="
+          cd runner
           mkdir data
           cd data
           wget openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
