@@ -722,8 +722,10 @@ class BenchmarkDatabase(object):
     def __init__(self, name):
         self.name = name
         self.dbname = os.path.join(conf["data_dir"], name+".db")
-        self.connection = sqlite3.connect(self.dbname)
 
+        # self.sync()
+
+        self.connection = sqlite3.connect(self.dbname)
         logging.info('Connected to database: ' + os.path.abspath(self.dbname))
 
     def _ensure_commits(self):
@@ -1214,29 +1216,38 @@ class BenchmarkDatabase(object):
 
         return filename
 
-    def backup(self):
+    def sync(self, backup=False):
         """
-        create a local backup database, rsync it to destination
+        sync database to remote copy
         """
         name = self.dbname
 
-        # first save the previous backup, if any
-        save_cmd = "mv -f " + name + ".bak " + name + ".prev"
-        code, out, err = execute_cmd(save_cmd)
+        if backup:
+            # save the previous backup, if any
+            save_cmd = "mv -f " + name + ".bak " + name + ".prev"
+            code, out, err = execute_cmd(save_cmd)
 
-        # create a new backup of the current database and upload it
-        backup_cmd = "sqlite3 " + name + " \".backup " + name + ".bak\""
-        code, out, err = execute_cmd(backup_cmd)
-        if not code:
+            # create a new backup of the current database and upload it
+            backup_cmd = "sqlite3 " + name + " \".backup " + name + ".bak\""
+            code, out, err = execute_cmd(backup_cmd)
+            if not code:
+                try:
+                    dest = conf["data"]["upload"]
+                    rsync_cmd = "rsync -zvh " + name + ".bak " + dest + "/" + name
+                    code, out, err = execute_cmd(rsync_cmd)
+                except KeyError:
+                    pass  # remote backup not configured
+                except:
+                    logging.error("ERROR attempting remote backup")
+                    logging.error(traceback.format_exc())
+        else:
+            # download the latest copy of the database
             try:
-                dest = conf["data"]["upload"]
-                rsync_cmd = "rsync -zvh " + name + ".bak " + dest + "/" + name
+                source = conf["data"]["upload"]
+                rsync_cmd = "rsync -zvh " + source + "/" + name + " " + name
                 code, out, err = execute_cmd(rsync_cmd)
             except KeyError:
-                pass  # remote backup not configured
-            except:
-                logging.error("ERROR attempting remote backup")
-                logging.error(traceback.format_exc())
+                pass
 
     def clean_data(self):
         """
@@ -1267,6 +1278,7 @@ class BenchmarkRunner(object):
         self.project = project
 
         # load the database
+
         self.db = BenchmarkDatabase(project["name"])
 
         if "slack" in conf:
@@ -1422,7 +1434,7 @@ class BenchmarkRunner(object):
                         write_json(fail_file, current_commits)
                     else:
                         # back up and transfer database
-                        db.backup()
+                        db.sync(backup=True)
 
         # close the log file for this run
         close_log_file()

@@ -1,0 +1,70 @@
+# Run Tests
+name: Run Tests
+
+on:
+  # Run the workflow nightly at 0000 UTC
+  schedule:
+    - cron: '0 0 * * *'
+
+  # Allow running the workflow manually from the Actions tab
+  # All jobs are excluded by default, desired jobs must be selected
+  workflow_dispatch:
+
+    inputs:
+
+      project_name:
+        description: 'Enter the name of the project to test:'
+        type: string
+        required: true
+        default: ''
+
+run-name:  ${{ inputs.project_name }}
+
+permissions: {}
+
+jobs:
+
+  tests:
+
+    timeout-minutes: 300
+
+    runs-on: ubuntu-24.04
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+
+      - name: Create SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          sudo chmod 600 ~/.ssh/id_rsa
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Repos
+        if: inputs.project_name == ''
+        run: |
+          echo "============================================================="
+          echo "Check for updates to any configured projects
+          echo "============================================================="
+          ./benchmark.py -u *.json
+
+      - name: Test ${{ inputs.project_name }}
+        if: inputs.project_name != ''
+        run: |
+          echo "============================================================="
+          echo "Test ${{ inputs.project_name }}"
+          echo "============================================================="
+          mkdir data
+          cd data
+          wget openmdao.org/benchmark/test/data/{{ inputs.project_name }}.db
+          cd ..
+          ./benchmark.py -u ${{ inputs.project_name }}.json
