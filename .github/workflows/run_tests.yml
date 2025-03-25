@@ -2,9 +2,9 @@
 name: Run Tests
 
 on:
-  # Run the workflow nightly at 0000 UTC
-  schedule:
-    - cron: '0 0 * * *'
+  # # Run the workflow nightly at 0000 UTC
+  # schedule:
+  #   - cron: '0 0 * * *'
 
   # Allow running the workflow manually from the Actions tab
   # All jobs are excluded by default, desired jobs must be selected
@@ -75,7 +75,7 @@ jobs:
           mkdir data
           cd data
           wget -q openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
-          cd
+          cd ..
           echo "============================================================="
           echo "Fetch SNOPT source if needed"
           echo "============================================================="
