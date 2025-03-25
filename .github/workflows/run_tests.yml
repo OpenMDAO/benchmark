@@ -89,6 +89,7 @@ jobs:
           echo "Fetch SNOPT source if needed"
           echo "============================================================="
           SNOPT_DIR=`grep snopt ${{ inputs.project_name }}.json | awk -F ' ' '{print $NF}' | tr -d '"'`
+          SNOPT_DIR="{SNOPT_DIR/~/$HOME}"
           echo "$SNOPT_DIR"
           if [ -n "$SNOPT_DIR" ]; then
             mkdir -p $SNOPT_DIR
