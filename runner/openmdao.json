@@ -11,7 +11,10 @@
     "conda": [
         "python=3.12",
         "numpy=1",
-        "scipy"
+        "scipy",
+        "liblapack",
+        "gcc",
+        "gfortran"
     ],
 
     "conda-forge": [
