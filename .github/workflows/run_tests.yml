@@ -75,7 +75,7 @@ jobs:
       - name: fetch database
         if: inputs.project_name != ''
         run: |
-          cd ${{ GITHUB_WORKSPACE }}/runner
+          cd $GITHUB_WORKSPACE/runner
 
           echo "============================================================="
           echo "Fetch database for ${{ inputs.project_name }}"
