@@ -64,7 +64,7 @@ jobs:
           auto-activate-base: true
           activate-environment: ""
 
-      - name: check Repos
+      - name: check all projects
         if: inputs.project_name == ''
         run: |
           echo "============================================================="
@@ -75,44 +75,36 @@ jobs:
       - name: fetch database
         if: inputs.project_name != ''
         run: |
+          cd ${{ GITHUB_WORKSPACE }}/runner
+
           echo "============================================================="
           echo "Fetch database for ${{ inputs.project_name }}"
           echo "============================================================="
-          cd runner
           mkdir data
           cd data
           wget -q openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
           cd ..
-          ls -l data
 
-      - name: fetch SNOPT (if needed)
-        if: inputs.project_name != ''
-        run: |
           echo "============================================================="
           echo "Fetch SNOPT source if needed"
           echo "============================================================="
-          cd runner
-          pwd
-          ls -l
           SNOPT_DIR=`grep snopt ${{ inputs.project_name }}.json | awk -F ' ' '{print $NF}' | tr -d '"'`
           echo "$SNOPT_DIR"
           if [ -n "$SNOPT_DIR" ]; then
             mkdir -p $SNOPT_DIR
             scp -qr ${{ secrets.SNOPT_LOCATION }} $SNOPT_DIR
+            ls -l ~
             ls -l $SNOPT_DIR/*
           fi
 
-      - name: test ${{ inputs.project_name }}
-        if: inputs.project_name != ''
-        run: |
           echo "============================================================="
           echo "Test ${{ inputs.project_name }}"
           echo "============================================================="
           pip install slack_sdk matplotlib
-          cd runner
+          ls -l data
           python benchmark.py -u ${{ inputs.project_name }}.json
-          pwd
-          ls -l *
+          ls -l data
+          ls -l repos/*
 
       - name: Setup tmate session
         if: ${{ inputs.debug_enabled }}
