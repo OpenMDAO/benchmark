@@ -18,6 +18,13 @@ on:
         required: true
         default: ''
 
+      debug_enabled:
+        type: boolean
+        description: 'Enable tmate debugging (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
+
 run-name:  ${{ inputs.project_name }}
 
 permissions: {}
@@ -92,3 +99,9 @@ jobs:
           python benchmark.py -u ${{ inputs.project_name }}.json
           pwd
           ls -l *
+
+      - name: Setup tmate session
+        if: ${{ inputs.debug_enabled }}
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
