@@ -57,11 +57,6 @@ jobs:
           auto-activate-base: true
           activate-environment: ""
 
-      - name: conda init
-        run: |
-          conda init
-          pip install slack_sdk matplotlib
-
       - name: check Repos
         if: inputs.project_name == ''
         run: |
@@ -74,11 +69,24 @@ jobs:
         if: inputs.project_name != ''
         run: |
           echo "============================================================="
-          echo "Test ${{ inputs.project_name }}"
+          echo "Fetch database for ${{ inputs.project_name }}"
           echo "============================================================="
           cd runner
           mkdir data
           cd data
           wget -q openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
-          cd ..
+          cd
+          echo "============================================================="
+          echo "Fetch SNOPT source if needed"
+          echo "============================================================="
+          SNOPT_DIR=`grep snopt ${{ inputs.project_name }}.json | awk '{print $NF}' | tr -d '"'`
+          if [[ "$SNOPT_DIR" && ${{ secrets.SNOPT_LOCATION_77 }}" ]]; then
+            mkdir -p $SNOPT_DIR
+            echo "  > Secure copying SNOPT 7.7 over SSH"
+            scp -qr ${{ secrets.SNOPT_LOCATION_77 }} $SNOPT_DIR
+          fi
+          echo "============================================================="
+          echo "Test ${{ inputs.project_name }}"
+          echo "============================================================="
+          pip install slack_sdk matplotlib
           python benchmark.py -u ${{ inputs.project_name }}.json
