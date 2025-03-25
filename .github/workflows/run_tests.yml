@@ -90,3 +90,5 @@ jobs:
           echo "============================================================="
           pip install slack_sdk matplotlib
           python benchmark.py -u ${{ inputs.project_name }}.json
+          pwd
+          ls -l *
