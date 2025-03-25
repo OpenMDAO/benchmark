@@ -72,7 +72,7 @@ jobs:
           echo "============================================================="
           ./benchmark.py -u *.json
 
-      - name: test ${{ inputs.project_name }}
+      - name: fetch database
         if: inputs.project_name != ''
         run: |
           echo "============================================================="
@@ -83,15 +83,23 @@ jobs:
           cd data
           wget -q openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
           cd ..
+
+      - name: fetch SNOPT (if needed)
+        if: inputs.project_name != ''
+        run: |
           echo "============================================================="
           echo "Fetch SNOPT source if needed"
           echo "============================================================="
-          SNOPT_DIR=`grep snopt ${{ inputs.project_name }}.json | awk '{print $NF}' | tr -d '"'`
+          SNOPT_DIR=`grep snopt ${{ inputs.project_name }}.json | awk -F ' ' '{print $NF}' | tr -d '"'`
           if [ -n "$SNOPT_DIR" ]; then
             mkdir -p $SNOPT_DIR
             scp -qr ${{ secrets.SNOPT_LOCATION }} $SNOPT_DIR
-            ls $SNOPT_DIR
+            ls -l $SNOPT_DIR
           fi
+
+      - name: test ${{ inputs.project_name }}
+        if: inputs.project_name != ''
+        run: |
           echo "============================================================="
           echo "Test ${{ inputs.project_name }}"
           echo "============================================================="
