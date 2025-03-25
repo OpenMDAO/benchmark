@@ -50,7 +50,7 @@ conf = {
     # script needs at least bash and conda
     "script_prefix": [
         "#!/bin/bash",
-        "set -e",
+        # "set -e",
         "set -x",
         "eval \"$(conda shell.bash hook)\""
     ],
