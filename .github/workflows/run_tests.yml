@@ -72,7 +72,7 @@ jobs:
           echo "============================================================="
           ./benchmark.py -u *.json
 
-      - name: fetch database
+      - name: test ${{ inputs.project_name }}
         if: inputs.project_name != ''
         run: |
           cd $GITHUB_WORKSPACE/runner
