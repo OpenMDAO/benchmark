@@ -87,9 +87,9 @@ jobs:
           echo "Fetch SNOPT source if needed"
           echo "============================================================="
           SNOPT_DIR=`grep snopt ${{ inputs.project_name }}.json | awk '{print $NF}' | tr -d '"'`
-          if "$SNOPT_DIR"; then
+          if [ -n "$SNOPT_DIR" ]; then
             mkdir -p $SNOPT_DIR
-            scp -qr ${{ secrets.SNOPT_LOCATION_77 }} $SNOPT_DIR
+            scp -qr ${{ secrets.SNOPT_LOCATION }} $SNOPT_DIR
             ls $SNOPT_DIR
           fi
           echo "============================================================="
