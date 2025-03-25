@@ -108,7 +108,7 @@ jobs:
           ls -l repos/*
 
       - name: Setup tmate session
-        if: ${{ inputs.debug_enabled }}
+        if: ${{ inputs.debug_enabled }} && failure()
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true

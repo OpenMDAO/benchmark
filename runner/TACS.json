@@ -26,7 +26,10 @@
     "conda-forge": [
         "mpi4py=3.1.6",
         "metis=5.1.0",
-        "petsc4py"
+        "petsc4py",
+        "liblapack",
+        "gcc",
+        "gfortran"
     ],
 
     "dependencies": [

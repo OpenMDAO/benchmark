@@ -6,7 +6,10 @@
     ],
 
     "preinstall": [
-        "unset USE_PROC_FILES"
+        "unset USE_PROC_FILES",
+        "export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe",
+        "export OMPI_MCA_rmaps_base_oversubscribe=1",
+        "export OMPI_MCA_btl=^openib"
     ],
 
     "conda": [
@@ -17,7 +20,10 @@
 
     "conda-forge": [
         "mpi4py",
-        "petsc4py"
+        "petsc4py",
+        "liblapack",
+        "gcc",
+        "gfortran"
     ],
 
     "postinstall": [
