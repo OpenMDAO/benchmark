@@ -94,8 +94,6 @@ jobs:
           if [ -n "$SNOPT_DIR" ]; then
             mkdir -p $SNOPT_DIR
             scp -qr ${{ secrets.SNOPT_LOCATION }} $SNOPT_DIR
-            ls -l ~
-            ls -l $SNOPT_DIR/*
           fi
 
           echo "============================================================="
@@ -105,7 +103,6 @@ jobs:
           ls -l data
           python benchmark.py -u ${{ inputs.project_name }}.json
           ls -l data
-          ls -l repos/*
 
       - name: Setup tmate session
         if: ${{ inputs.debug_enabled }} && failure()

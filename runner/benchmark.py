@@ -132,7 +132,6 @@ def init_env(project_info):
             env[key] = val
 
 
-
 def execute_cmd(cmd, shell=False, merge_streams=False, stdin=None):
     """
     Execute the external command and get its exitcode, stdout and stderr.
