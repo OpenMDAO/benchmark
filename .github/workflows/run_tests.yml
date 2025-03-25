@@ -83,9 +83,7 @@ jobs:
           cd data
           wget -q openmdao.org/benchmark/test/data/${{ inputs.project_name }}.db
           cd ..
-          pwd
           ls -l data
-          ls -l
 
       - name: fetch SNOPT (if needed)
         if: inputs.project_name != ''
@@ -93,6 +91,7 @@ jobs:
           echo "============================================================="
           echo "Fetch SNOPT source if needed"
           echo "============================================================="
+          cd runner
           pwd
           ls -l
           SNOPT_DIR=`grep snopt ${{ inputs.project_name }}.json | awk -F ' ' '{print $NF}' | tr -d '"'`
