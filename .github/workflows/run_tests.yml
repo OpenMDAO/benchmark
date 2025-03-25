@@ -95,10 +95,11 @@ jobs:
           pwd
           ls -l
           SNOPT_DIR=`grep snopt ${{ inputs.project_name }}.json | awk -F ' ' '{print $NF}' | tr -d '"'`
+          echo "$SNOPT_DIR"
           if [ -n "$SNOPT_DIR" ]; then
             mkdir -p $SNOPT_DIR
             scp -qr ${{ secrets.SNOPT_LOCATION }} $SNOPT_DIR
-            ls -l $SNOPT_DIR
+            ls -l $SNOPT_DIR/*
           fi
 
       - name: test ${{ inputs.project_name }}
@@ -108,6 +109,7 @@ jobs:
           echo "Test ${{ inputs.project_name }}"
           echo "============================================================="
           pip install slack_sdk matplotlib
+          cd runner
           python benchmark.py -u ${{ inputs.project_name }}.json
           pwd
           ls -l *
