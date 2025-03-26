@@ -74,20 +74,6 @@ jobs:
           echo "cat GITHUB_ENV:"
           cat $GITHUB_ENV
 
-  job2:
-    runs-on: ubuntu-latest
-    needs: get_projects
-    steps:
-      - env:
-          PROJECT_LIST: ${{needs.get_projects.outputs.list_projects.project_list}}
-        run: |
-          echo "PROJECT_LIST: $PROJECT_LIST"
-          echo "GITHUB_ENV:"
-          cat $GITHUB_ENV
-          echo "OUTPUTS: ${{needs.get_projects.outputs}}"
-          echo "${{needs.get_projects.outputs.project_list}}"
-          echo "${{needs.get_projects.outputs.list_projects.project_list}}"
-
   test_project:
 
     timeout-minutes: 300
