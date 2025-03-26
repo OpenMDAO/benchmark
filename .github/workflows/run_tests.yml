@@ -58,7 +58,6 @@ jobs:
           echo "cat GITHUB_ENV:"
           cat $GITHUB_ENV
           echo "${{ fromJson($PROJECT_LIST) }}"
-          echo "${{ fromJson('$PROJECT_LIST') }}"
 
   job2:
     runs-on: ubuntu-latest
