@@ -47,7 +47,7 @@ jobs:
         id: get-matrix
         run: |
           cd $GITHUB_WORKSPACE/runner
-          if "${{ inputs.project_name }}" != ""; then
+          if [ -n "${{ inputs.project_name }}" ]; then
             PROJECTS=("${{ inputs.project_name }}")
           else
             PROJECTS=($(ls *.json))
