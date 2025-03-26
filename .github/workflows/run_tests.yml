@@ -29,22 +29,6 @@ permissions: {}
 
 jobs:
 
-  job1:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - id: set-matrix
-        run: echo "matrix={\"include\":[{\"project\":\"foo\",\"config\":\"Debug\"},{\"project\":\"bar\",\"config\":\"Release\"}]}" >> $GITHUB_OUTPUT
-
-  job2:
-    needs: job1
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJSON(needs.job1.outputs.matrix) }}
-    steps:
-      - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
-
   get_projects:
     runs-on: ubuntu-latest
 
@@ -68,6 +52,30 @@ jobs:
           echo "project_list='$PROJECTS'" >>$GITHUB_ENV
           echo "cat GITHUB_ENV:"
           cat $GITHUB_ENV
+
+  job1:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: echo "matrix={\"include\":[{\"project\":\"foo\",\"config\":\"Debug\"},{\"project\":\"bar\",\"config\":\"Release\"}]}" >> $GITHUB_OUTPUT
+
+  job2:
+    needs: job1
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.job1.outputs.matrix) }}
+    steps:
+      - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
+
+  job3:
+    needs: get_projects
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.get_projects.outputs.project_list) }}
+    steps:
+      - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
 
   test_project:
     needs: get_projects
