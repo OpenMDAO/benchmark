@@ -47,6 +47,7 @@ jobs:
             PROJECTS=("${{ inputs.project_name }}")
           else
             PROJECTS=($(ls *.json))
+          fi
           PROJECT_LIST=`echo [ $(IFS=, eval 'echo "${PROJECTS[*]}"') ]`
           echo "matrix=$PROJECT_LIST"
           echo "matrix=$PROJECT_LIST" >>$GITHUB_ENV
