@@ -37,7 +37,7 @@ jobs:
         shell: bash -l {0}
 
     outputs:
-      matrix: ${{ steps.get-matrix.outputs.matrix }}
+      project_list: ${{ steps.get-matrix.outputs.project_list }}
 
     steps:
       - name: checkout code
@@ -53,8 +53,8 @@ jobs:
             PROJECTS=($(ls *.json))
           fi
           PROJECT_LIST=`echo [ $(IFS=, eval 'echo "${PROJECTS[*]}"') ]`
-          echo "matrix='$PROJECT_LIST'"
-          echo "matrix='$PROJECT_LIST'" >>$GITHUB_ENV
+          echo "project_list='$PROJECT_LIST'"
+          echo "project_list='$PROJECT_LIST'" >>$GITHUB_ENV
           cat $GITHUB_ENV
 
   job2:
@@ -62,7 +62,7 @@ jobs:
     needs: get_matrix
     steps:
       - env:
-          OUTPUT1: ${{needs.get_matrix.outputs.output1}}
+          OUTPUT1: ${{needs.get_matrix.outputs.project_list}}
         run: |
           echo "Output1: $OUTPUT1"
           echo "GITHUB_ENV:"
@@ -79,7 +79,7 @@ jobs:
 
     strategy:
       matrix:
-        project_name: ${{fromJson(needs.get_matrix.outputs.matrix)}}
+        project_name: ${{fromJson(needs.get_matrix.outputs.project_list)}}
 
     defaults:
       run:
