@@ -55,6 +55,16 @@ jobs:
           PROJECT_LIST=`echo [ $(IFS=, eval 'echo "${PROJECTS[*]}"') ]`
           echo "matrix=$PROJECT_LIST"
           echo "matrix=$PROJECT_LIST" >>$GITHUB_ENV
+          echo $GITHUB_ENV
+
+  job2:
+    runs-on: ubuntu-latest
+    needs: get_matrix
+    steps:
+      - env:
+          OUTPUT1: ${{needs.get_matrix.outputs.output1}}
+          OUTPUTS: ${{needs.get_matrix.outputs}}
+        run: echo "$OUTPUT1 $OUTPUTS"
 
   test_project:
 
