@@ -57,7 +57,7 @@ jobs:
           echo "project_list='$PROJECT_LIST'" >>$GITHUB_ENV
           echo "cat GITHUB_ENV:"
           cat $GITHUB_ENV
-          echo "${{fromJson(needs.get_projects.outputs.project_list)}}"
+          echo "${{ project_list) }}"
 
   job2:
     runs-on: ubuntu-latest
