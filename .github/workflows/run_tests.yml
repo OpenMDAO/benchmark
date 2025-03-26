@@ -15,7 +15,7 @@ on:
       project_name:
         description: 'Enter the name of the project to test:'
         type: string
-        required: true
+        required: false
         default: ''
 
       debug_enabled:
@@ -63,12 +63,14 @@ jobs:
     needs: get_projects
     steps:
       - env:
-          PROJECT_LIST: ${{needs.get_projects.outputs.project_list}}
+          PROJECT_LIST: ${{needs.get_projects.outputs.list_projects.project_list}}
         run: |
           echo "PROJECT_LIST: $PROJECT_LIST"
           echo "GITHUB_ENV:"
           cat $GITHUB_ENV
           echo "OUTPUTS: ${{needs.get_projects.outputs}}"
+          echo "${{needs.get_projects.outputs.project_list}}""
+          echo "${{needs.get_projects.outputs.list_projects.project_list}}""
 
   test_project:
 
