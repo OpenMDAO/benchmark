@@ -53,8 +53,8 @@ jobs:
             PROJECTS=($(ls *.json))
           fi
           PROJECT_LIST=`echo [ $(IFS=, eval 'echo "${PROJECTS[*]}"') ]`
-          echo "matrix=$PROJECT_LIST"
-          echo "matrix=$PROJECT_LIST" >>$GITHUB_ENV
+          echo "matrix='$PROJECT_LIST'"
+          echo "matrix='$PROJECT_LIST'" >>$GITHUB_ENV
           cat $GITHUB_ENV
 
   job2:
@@ -64,9 +64,10 @@ jobs:
       - env:
           OUTPUT1: ${{needs.get_matrix.outputs.output1}}
         run: |
-          echo "$OUTPUT1"
+          echo "Output1: $OUTPUT1"
+          echo "GITHUB_ENV:"
           cat $GITHUB_ENV
-          echo "${{needs.get_matrix.outputs}}"
+          echo "OUTPUTS: ${{needs.get_matrix.outputs}}"
 
   test_project:
 
