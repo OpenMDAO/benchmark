@@ -29,22 +29,22 @@ permissions: {}
 
 jobs:
 
-  get_matrix:
-    runs-on: ubuntu-24.04
+  get_projects:
+    runs-on: ubuntu-latest
+
+    outputs:
+      project_list: ${{ steps.list_projects.outputs.project_list }}
 
     defaults:
       run:
         shell: bash -l {0}
 
-    outputs:
-      project_list: ${{ steps.get-matrix.outputs.project_list }}
-
     steps:
       - name: checkout code
         uses: actions/checkout@v4
 
-      - name: Get matrix
-        id: get-matrix
+      - name: Get list of projects
+        id: list_projects
         run: |
           cd $GITHUB_WORKSPACE/runner
           if [ -n "${{ inputs.project_name }}" ]; then
@@ -55,19 +55,20 @@ jobs:
           PROJECT_LIST=`echo [ $(IFS=, eval 'echo "${PROJECTS[*]}"') ]`
           echo "project_list='$PROJECT_LIST'"
           echo "project_list='$PROJECT_LIST'" >>$GITHUB_ENV
+          echo "cat GITHUB_ENV:"
           cat $GITHUB_ENV
 
   job2:
     runs-on: ubuntu-latest
-    needs: get_matrix
+    needs: get_projects
     steps:
       - env:
-          OUTPUT1: ${{needs.get_matrix.outputs.project_list}}
+          PROJECT_LIST: ${{needs.get_projects.outputs.project_list}}
         run: |
-          echo "Output1: $OUTPUT1"
+          echo "PROJECT_LIST: $PROJECT_LIST"
           echo "GITHUB_ENV:"
           cat $GITHUB_ENV
-          echo "OUTPUTS: ${{needs.get_matrix.outputs}}"
+          echo "OUTPUTS: ${{needs.get_projects.outputs}}"
 
   test_project:
 
@@ -75,11 +76,11 @@ jobs:
 
     runs-on: ubuntu-24.04
 
-    needs: get_matrix
+    needs: get_projects
 
     strategy:
       matrix:
-        project_name: ${{fromJson(needs.get_matrix.outputs.project_list)}}
+        project_name: ${{fromJson(needs.get_projects.outputs.project_list)}}
 
     defaults:
       run:
@@ -103,27 +104,28 @@ jobs:
       - name: setup conda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: ${{ matrix.PY }}
           channels: conda-forge
           auto-activate-base: true
           activate-environment: ""
 
       - name: test ${{ matrix.project_name }}
+        env:
+          PROJECT_NAME: ${{ matrix.project_name }}
         run: |
           cd $GITHUB_WORKSPACE/runner
 
           echo "============================================================="
-          echo "Fetch database for ${{ matrix.project_name }}"
+          echo "Fetch database for $PROJECT_NAME"
           echo "============================================================="
           mkdir data
           cd data
-          wget -q openmdao.org/benchmark/test/data/${{ matrix.project_name }}.db
+          wget -q openmdao.org/benchmark/test/data/$PROJECT_NAME.db
           cd ..
 
           echo "============================================================="
           echo "Fetch SNOPT source if needed"
           echo "============================================================="
-          SNOPT_DIR=`grep snopt ${{ matrix.project_name }}.json | awk -F ' ' '{print $NF}' | tr -d '"'`
+          SNOPT_DIR=`grep snopt $PROJECT_NAME.json | awk -F ' ' '{print $NF}' | tr -d '"'`
           SNOPT_DIR="${SNOPT_DIR/\~/$HOME}"
           echo "$SNOPT_DIR"
           if [ -n "$SNOPT_DIR" ]; then
@@ -132,11 +134,11 @@ jobs:
           fi
 
           echo "============================================================="
-          echo "Test ${{ matrix.project_name }}"
+          echo "Test $PROJECT_NAME"
           echo "============================================================="
           pip install slack_sdk matplotlib
           ls -l data
-          python benchmark.py -u ${{ matrix.project_name }}.json
+          python benchmark.py -u $PROJECT_NAME
           ls -l data
 
       - name: Setup tmate session
