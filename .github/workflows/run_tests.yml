@@ -40,6 +40,9 @@ jobs:
       matrix: ${{ steps.get-matrix.outputs.matrix }}
 
     steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
       - name: Get matrix
         id: get-matrix
         run: |
