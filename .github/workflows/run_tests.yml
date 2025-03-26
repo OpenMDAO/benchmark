@@ -51,10 +51,6 @@ jobs:
     outputs:
       project_list: ${{ steps.list_projects.outputs.project_list }}
 
-    defaults:
-      run:
-        shell: bash -l {0}
-
     steps:
       - name: checkout code
         uses: actions/checkout@v4
@@ -64,31 +60,25 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/runner
           if [ -n "${{ inputs.project_name }}" ]; then
-            PROJECTS=("${{ inputs.project_name }}")
+            PROJECTS='[ "${{ inputs.project_name }}" ]'
           else
-            PROJECTS=($(ls *.json))
+            PROJECTS=`python -c 'import os; import json; files = os.listdir("."); print(json.dumps([f for f in files if f.endswith(".json")]))'`
           fi
-          PROJECT_LIST=`echo [ $(IFS=, eval 'echo "${PROJECTS[*]}"') ]`
-          echo "project_list='$PROJECT_LIST'"
-          echo "project_list='$PROJECT_LIST'" >>$GITHUB_ENV
+          echo "project_list='$PROJECTS'"
+          echo "project_list='$PROJECTS'" >>$GITHUB_ENV
           echo "cat GITHUB_ENV:"
           cat $GITHUB_ENV
 
   test_project:
+    needs: get_projects
 
     timeout-minutes: 300
 
-    runs-on: ubuntu-24.04
-
-    needs: get_projects
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
         project_name: ${{fromJson(needs.get_projects.outputs.project_list)}}
-
-    defaults:
-      run:
-        shell: bash -l {0}
 
     steps:
 
