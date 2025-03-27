@@ -29,27 +29,23 @@ permissions: {}
 
 jobs:
 
-  get_projects:
+  get_project_matrix:
     runs-on: ubuntu-latest
 
     outputs:
-      project_list: ${{ steps.list_projects.outputs.project_list }}
+      project_list: ${{ steps.list_projects.outputs.matrix }}
 
     steps:
       - name: checkout code
         uses: actions/checkout@v4
 
-      - name: Get list of projects
-        id: list_projects
+      - name: Get matrix
+        id: get-matrix
         run: |
           cd $GITHUB_WORKSPACE/runner
-          if [ -n "${{ inputs.project_name }}" ]; then
-            PROJECTS='[ "${{ inputs.project_name }}" ]'
-          else
-            PROJECTS=`python -c 'import os; import json; files = os.listdir("."); print(json.dumps([f for f in files if f.endswith(".json")]))'`
-          fi
-          echo "project_list='$PROJECTS'"
-          echo "project_list='$PROJECTS'" >>$GITHUB_ENV
+          MATRIX=`python .github/scripts/build_matrix.py "${{ inputs.project_name }}"`
+          echo "matrix='$MATRIX'"
+          echo "matrix='$MATRIX'" >> $GITHUB_ENV
           echo "cat GITHUB_ENV:"
           cat $GITHUB_ENV
 
@@ -70,23 +66,22 @@ jobs:
       - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
 
   job3:
-    needs: get_projects
+    needs: get_project_matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJSON(needs.get_projects.outputs.project_list) }}
+      matrix: ${{ fromJSON(needs.get_project_matrix.outputs.matrix) }}
     steps:
-      - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
+      - run: echo "Matrix - Project ${{ matrix.project }}"
 
   test_project:
-    needs: get_projects
+    needs: get_project_matrix
 
     timeout-minutes: 300
 
     runs-on: ubuntu-latest
 
     strategy:
-      matrix:
-        project_name: ${{fromJson(needs.get_projects.outputs.project_list)}}
+      matrix: ${{ fromJSON(needs.get_project_matrix.outputs.matrix) }}
 
     steps:
 
