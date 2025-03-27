@@ -86,7 +86,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/runner
 
-          printf "${BENCHMARK_CONFIG}" >benchmark.cfg
+          printf '%q\n' "${BENCHMARK_CONFIG}" >benchmark.cfg
 
           echo "============================================================="
           echo "Fetch database for $PROJECT_NAME"
