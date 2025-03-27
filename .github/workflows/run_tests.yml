@@ -43,7 +43,7 @@ jobs:
         id: get-matrix
         run: |
           cd $GITHUB_WORKSPACE/runner
-          MATRIX=`python .github/scripts/build_matrix.py "${{ inputs.project_name }}"`
+          MATRIX=`python ../.github/scripts/build_matrix.py "${{ inputs.project_name }}"`
           echo "matrix='$MATRIX'"
           echo "matrix='$MATRIX'" >> $GITHUB_ENV
           echo "cat GITHUB_ENV:"
