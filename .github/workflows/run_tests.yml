@@ -37,7 +37,8 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v4
 
-      - id: set-matrix
+      - name: generate matrix
+        id: set-matrix
         run: |
           cd $GITHUB_WORKSPACE/runner
           MATRIX=`python ../.github/scripts/build_matrix.py "${{ inputs.project_name }}"`
