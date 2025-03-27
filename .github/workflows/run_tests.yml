@@ -45,9 +45,9 @@ jobs:
           cd $GITHUB_WORKSPACE/runner
           MATRIX=`python ../.github/scripts/build_matrix.py "${{ inputs.project_name }}"`
           echo "matrix='$MATRIX'"
-          echo "matrix='$MATRIX'" >> $GITHUB_ENV
-          echo "cat GITHUB_ENV:"
-          cat $GITHUB_ENV
+          echo "matrix='$MATRIX'" >> $GITHUB_OUTPUT
+          echo "cat GITHUB_OUTPUT:"
+          cat $GITHUB_OUTPUT
 
   job1:
     runs-on: ubuntu-latest
