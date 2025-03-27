@@ -13,4 +13,5 @@ else:
 for p in projects:
     matrix['include'].append({'project_name': p})
 
-print(json.dumps(matrix))
+json_str = json.dumps(matrix).replace('"', '\\"')
+print(json_str)
