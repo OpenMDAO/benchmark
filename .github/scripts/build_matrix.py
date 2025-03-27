@@ -4,13 +4,11 @@ import json
 
 matrix = {'include': []}
 
-print(f"{sys.argv=}")
-
-if len(sys.argv) > 1:
-    projects = sys.argv[1:]
+if len(sys.argv) == 1 or (len(sys.argv) == 2 and sys.argv[1] == ''):
+    files = os.listdir('.')
+    projects = [f for f in files if f.endswith('.json')]
 else:
-    projects = os.listdir('.')
-    projects = [f for f in projects if f.endswith('.json')]
+    projects = [p for p in sys.argv[1:]]
 
 for p in projects:
     matrix['include'].append({'project_name': p})
