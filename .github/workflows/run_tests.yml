@@ -53,6 +53,9 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
       - id: set-matrix
         run: |
           cd $GITHUB_WORKSPACE/runner
