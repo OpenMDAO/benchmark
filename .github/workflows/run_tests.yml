@@ -29,25 +29,6 @@ permissions: {}
 
 jobs:
 
-  # get_project_matrix:
-  #   runs-on: ubuntu-latest
-
-  #   outputs:
-  #     matrix: ${{ steps.list_projects.outputs.matrix }}
-
-  #   steps:
-  #     - name: checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Get matrix
-  #       id: get-matrix
-  #       run: |
-  #         cd $GITHUB_WORKSPACE/runner
-  #         MATRIX=`python ../.github/scripts/build_matrix.py "${{ inputs.project_name }}"`
-  #         echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-  #         echo "cat GITHUB_OUTPUT:"
-  #         cat $GITHUB_OUTPUT
-
   get_project_matrix:
     runs-on: ubuntu-latest
     outputs:
@@ -64,22 +45,6 @@ jobs:
           echo "cat GITHUB_OUTPUT:"
           cat $GITHUB_OUTPUT
 
-  # job2:
-  #   needs: job1
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix: ${{ fromJSON(needs.job1.outputs.matrix) }}
-  #   steps:
-  #     - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
-
-  # job3:
-  #   needs: get_project_matrix
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix: ${{ fromJSON(needs.get_project_matrix.outputs.matrix) }}
-  #   steps:
-  #     - run: echo "Matrix - Project ${{ matrix.project }}"
-
   test_project:
     needs: get_project_matrix
 
@@ -88,6 +53,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix: ${{ fromJSON(needs.get_project_matrix.outputs.matrix) }}
 
     steps:

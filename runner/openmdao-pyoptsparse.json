@@ -5,6 +5,8 @@
         "git@github.com:mdolab/pyoptsparse/releases"
     ],
 
+    "skip": "true",
+
     "preinstall": [
         "unset USE_PROC_FILES",
         "export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe",
