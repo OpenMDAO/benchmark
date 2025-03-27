@@ -82,24 +82,28 @@ jobs:
       - name: test ${{ matrix.project_name }}
         env:
           PROJECT_NAME: ${{ matrix.project_name }}
+          BENCHMARK_CONFIG: ${{ secrets.BENCHMARK_CONFIG }}
         run: |
           cd $GITHUB_WORKSPACE/runner
+
+          cat $BENCHMARK_CONFIG >benchmark.cfg
 
           echo "============================================================="
           echo "Fetch database for $PROJECT_NAME"
           echo "============================================================="
           mkdir data
           cd data
-          wget -q openmdao.org/benchmark/test/data/$PROJECT_NAME.db
+          wget -q openmdao.org/benchmark/test/data/$PROJECT_NAME.db  || echo "No data found for $PROJECT_NAME"
           cd ..
+          ls -l data
 
           echo "============================================================="
           echo "Fetch SNOPT source if needed"
           echo "============================================================="
           SNOPT_DIR=`grep snopt $PROJECT_NAME.json | awk -F ' ' '{print $NF}' | tr -d '"'`
-          SNOPT_DIR="${SNOPT_DIR/\~/$HOME}"
-          echo "$SNOPT_DIR"
           if [ -n "$SNOPT_DIR" ]; then
+            SNOPT_DIR="${SNOPT_DIR/\~/$HOME}"
+            echo "$SNOPT_DIR"
             mkdir -p $SNOPT_DIR
             scp -qr ${{ secrets.SNOPT_LOCATION }} $SNOPT_DIR
           fi
@@ -108,7 +112,6 @@ jobs:
           echo "Test $PROJECT_NAME"
           echo "============================================================="
           pip install slack_sdk matplotlib
-          ls -l data
           python benchmark.py -u $PROJECT_NAME
           ls -l data
 

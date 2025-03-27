@@ -1657,6 +1657,7 @@ def main(args=None):
             project_info = read_json(project_file)
 
             if project_info.get("skip"):  # and not options.force:
+                logging.info("Skipping %s", project_file)
                 continue
 
             project_name = os.path.basename(project_file).rsplit('.', 1)[0]
