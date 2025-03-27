@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      project_list: ${{ steps.list_projects.outputs.matrix }}
+      matrix: ${{ steps.list_projects.outputs.matrix }}
 
     steps:
       - name: checkout code
@@ -48,37 +48,37 @@ jobs:
           echo "cat GITHUB_OUTPUT:"
           cat $GITHUB_OUTPUT
 
-  job1:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v4
+  # job1:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix: ${{ steps.set-matrix.outputs.matrix }}
+  #   steps:
+  #     - name: checkout code
+  #       uses: actions/checkout@v4
 
-      - id: set-matrix
-        run: |
-          cd $GITHUB_WORKSPACE/runner
-          MATRIX=`python ../.github/scripts/build_matrix.py "${{ inputs.project_name }}"`
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
-          echo "cat GITHUB_OUTPUT:"
-          cat $GITHUB_OUTPUT
+  #     - id: set-matrix
+  #       run: |
+  #         cd $GITHUB_WORKSPACE/runner
+  #         MATRIX=`python ../.github/scripts/build_matrix.py "${{ inputs.project_name }}"`
+  #         echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+  #         echo "cat GITHUB_OUTPUT:"
+  #         cat $GITHUB_OUTPUT
 
-  job2:
-    needs: job1
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJSON(needs.job1.outputs.matrix) }}
-    steps:
-      - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
+  # job2:
+  #   needs: job1
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix: ${{ fromJSON(needs.job1.outputs.matrix) }}
+  #   steps:
+  #     - run: echo "Matrix - Project ${{ matrix.project }}, Config ${{ matrix.config }}"
 
-  job3:
-    needs: get_project_matrix
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJSON(needs.get_project_matrix.outputs.matrix) }}
-    steps:
-      - run: echo "Matrix - Project ${{ matrix.project }}"
+  # job3:
+  #   needs: get_project_matrix
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix: ${{ fromJSON(needs.get_project_matrix.outputs.matrix) }}
+  #   steps:
+  #     - run: echo "Matrix - Project ${{ matrix.project }}"
 
   test_project:
     needs: get_project_matrix
