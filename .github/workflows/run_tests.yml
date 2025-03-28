@@ -124,7 +124,7 @@ jobs:
             cat $f
           done
 
-      - name: Display test log
+      - name: Display test logs
         run: |
           for f in $(find /home/runner/work/benchmark/benchmark/runner/repos -name '*.log'); do
             echo "============================================================="
