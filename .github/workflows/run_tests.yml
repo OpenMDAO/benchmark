@@ -59,7 +59,7 @@ jobs:
 
     steps:
 
-      - name: create SSH key
+      - name: Create SSH key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
@@ -69,17 +69,17 @@ jobs:
           sudo chmod 600 ~/.ssh/id_rsa
           echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
-      - name: checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: setup conda
+      - name: Setup conda
         uses: conda-incubator/setup-miniconda@v3
         with:
           channels: conda-forge
           auto-activate-base: true
           activate-environment: ""
 
-      - name: test ${{ matrix.project_name }}
+      - name: Run tests for ${{ matrix.project_name }}
         env:
           PROJECT_NAME: ${{ matrix.project_name }}
           BENCHMARK_CONFIG: ${{ secrets.BENCHMARK_CONFIG }}
@@ -114,6 +114,24 @@ jobs:
           pip install slack_sdk matplotlib
           python benchmark.py -u $PROJECT_NAME
           ls -l data
+
+      - name: Display run log
+        run: |
+          for f in $(find /home/runner/work/benchmark/benchmark/runner/logs -name '*.log'); do
+            echo "============================================================="
+            echo $f
+            echo "============================================================="
+            cat $f
+          done
+
+      - name: Display test log
+        run: |
+          for f in $(find /home/runner/work/benchmark/benchmark/runner/repos -name '*.log'); do
+            echo "============================================================="
+            echo $f
+            echo "============================================================="
+            cat $f
+          done
 
       - name: Setup tmate session
         if: inputs.debug_enabled
