@@ -86,7 +86,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/runner
 
-          printf '%q\n' "${BENCHMARK_CONFIG}" >benchmark.cfg
+          echo ${BENCHMARK_CONFIG} | base64 --decode >benchmark.cfg
 
           echo "============================================================="
           echo "Fetch database for $PROJECT_NAME"
