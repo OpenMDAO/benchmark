@@ -287,7 +287,7 @@ def conda(name):
 
     # modify PATH for environment
     path = env["PATH"].split(os.pathsep)
-    print(f"{{path=}}")
+    print(f"{path=}")
     for dirname in path:
         if ("anaconda" in dirname or "miniconda" in dirname or "miniforge" in dirname) and dirname.endswith("/bin"):
             conda_dir = dirname

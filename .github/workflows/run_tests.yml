@@ -113,7 +113,7 @@ jobs:
           echo "============================================================="
           pip install slack_sdk matplotlib
           which conda
-          python benchmark.py -u $PROJECT_NAME
+          python benchmark.py -uk $PROJECT_NAME
           ls -l data
 
       - name: Display run log
