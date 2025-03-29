@@ -289,7 +289,7 @@ def conda(name):
     path = env["PATH"].split(os.pathsep)
     for dirname in path:
         if ("anaconda" in dirname or "miniconda" in dirname or "miniforge" in dirname) and \
-           (dirname.endswith("/bin") or dirname.endwith("/condabin")):
+           (dirname.endswith("/bin") or dirname.endswith("/condabin")):
             conda_dir = dirname
             path.remove(conda_dir)
             break
