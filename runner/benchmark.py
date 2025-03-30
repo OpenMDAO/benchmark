@@ -1060,6 +1060,7 @@ class BenchmarkDatabase(object):
         filenames = []
 
         try:
+            print(f"{os.environ['PYTHONPATH']=}")
             if not show:
                 import matplotlib
                 matplotlib.use('Agg')
@@ -1155,7 +1156,7 @@ class BenchmarkDatabase(object):
 
                 pyplot.close(fig)
 
-        except ImportError as err:
+        except ImportError, ModuleNotFoundError as err:
             logging.info("numpy and matplotlib are required to plot benchmark data: %s" % err)
 
         return filenames
