@@ -1156,7 +1156,7 @@ class BenchmarkDatabase(object):
 
                 pyplot.close(fig)
 
-        except ImportError, ModuleNotFoundError as err:
+        except (ImportError, ModuleNotFoundError) as err:
             logging.info("numpy and matplotlib are required to plot benchmark data: %s" % err)
 
         return filenames
