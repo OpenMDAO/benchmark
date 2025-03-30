@@ -111,7 +111,8 @@ jobs:
           echo "============================================================="
           echo "Test $PROJECT_NAME"
           echo "============================================================="
-          conda install numpy scipy matplotlib slack_sdk
+          conda install numpy scipy matplotlib
+          pip install slack_sdk
           which conda
           python benchmark.py -uk $PROJECT_NAME
           ls -l data
