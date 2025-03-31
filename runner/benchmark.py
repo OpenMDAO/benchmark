@@ -1066,6 +1066,12 @@ class BenchmarkDatabase(object):
         import numpy as np
 
         try:
+            import matplotlib
+            matplotlib.use('Agg')
+        except Exception as err:
+            logging.info("matplotlib is not available: %s" % err)
+
+        try:
             if not show:
                 import matplotlib
                 matplotlib.use('Agg')
