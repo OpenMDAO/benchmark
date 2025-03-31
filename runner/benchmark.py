@@ -294,7 +294,10 @@ def conda(name):
             path.remove(conda_dir)
             break
 
-    env_path = conda_dir[:-3] + "/envs/" + name + "/bin"
+    if env_path.endswith("/condabin"):
+        env_path = conda_dir.replace("/condabin", "/envs/"+name)
+    else
+        env_path = conda_dir.replace("/bin", "/envs/"+name)
     env["PATH"] = prepend_path(env_path+"/bin", (os.pathsep).join(path))
 
     logging.info('> switching environment (into %s)', name)
