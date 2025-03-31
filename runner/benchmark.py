@@ -296,7 +296,7 @@ def conda(name):
 
     if env_path.endswith("/condabin"):
         env_path = conda_dir.replace("/condabin", "/envs/"+name)
-    else
+    else:
         env_path = conda_dir.replace("/bin", "/envs/"+name)
     env["PATH"] = prepend_path(env_path+"/bin", (os.pathsep).join(path))
 
