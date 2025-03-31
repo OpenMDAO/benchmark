@@ -1054,13 +1054,15 @@ class BenchmarkDatabase(object):
         """
         generate a history plot for this projects benchmarks
         """
-        import numpy as np
-
         logging.info('plot: %s', self.name)
         filenames = []
 
+        print(f"{os.environ['PYTHONPATH']=}")
+        logging.info(f"{os.environ['PYTHONPATH']=}"
+
+        import numpy as np
+
         try:
-            print(f"{os.environ['PYTHONPATH']=}")
             if not show:
                 import matplotlib
                 matplotlib.use('Agg')
