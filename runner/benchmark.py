@@ -294,7 +294,7 @@ def conda(name):
             path.remove(conda_dir)
             break
 
-    if env_path.endswith("/condabin"):
+    if conda_dir.endswith("/condabin"):
         env_path = conda_dir.replace("/condabin", "/envs/"+name)
     else:
         env_path = conda_dir.replace("/bin", "/envs/"+name)
