@@ -1058,7 +1058,7 @@ class BenchmarkDatabase(object):
         filenames = []
 
         print(f"{os.environ['PYTHONPATH']=}")
-        logging.info(f"{os.environ['PYTHONPATH']=}"
+        logging.info(f"{os.environ['PYTHONPATH']=}")
 
         import numpy as np
 
