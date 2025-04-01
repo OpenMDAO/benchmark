@@ -1243,7 +1243,7 @@ class BenchmarkDatabase(object):
         if not code:
             try:
                 dest = conf["data"]["upload"]
-                rsync_cmd = "rsync -zvh " + name + ".bak " + dest + "/" + name
+                rsync_cmd = "rsync -vvv -zh " + name + ".bak " + dest + "/" + name
                 code, out, err = execute_cmd(rsync_cmd)
             except KeyError:
                 pass  # remote backup not configured
@@ -1554,9 +1554,12 @@ class BenchmarkRunner(object):
         image_url = None
         summary_plots = []
 
+        logging.info(f"post_results() {conf['plot_history']=} {conf['images']=}")
+
         if conf["plot_history"]:
             summary_plots = db.plot_benchmarks(save=True, show=False)
             if conf.get("images") and summary_plots:
+                logging.info("post_results() uploading summary plots..")
                 rc, _, _ = upload(summary_plots, conf["images"]["upload"])
                 if rc == 0:
                     image_url = conf["images"]["url"]
@@ -1567,6 +1570,7 @@ class BenchmarkRunner(object):
             self.slack.post_message(trigger_msg + "\nBenchmarking was successful.")
 
             # post summary plots
+            logging.info(f"post_results() {summary_plots=} {image_url=}")
             if summary_plots and image_url:
                 for plot_file in summary_plots:
                     self.slack.post_image("", "/".join([image_url, plot_file]))
