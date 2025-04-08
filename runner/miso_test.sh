@@ -47,7 +47,7 @@ if ! conda env list | grep miso_test; then
   conda create --yes -n miso_test python=3.11 cython swig metis
   conda activate miso_test
   export METIS_DIR=$CONDA_PREFIX
-  pip install mpi4py petsc4py=3.20 mkdocs
+  pip install mpi4py petsc4py==3.20 mkdocs
 else
   conda activate miso_test
 fi
