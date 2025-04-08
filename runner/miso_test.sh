@@ -45,17 +45,17 @@ if ! conda env list | grep miso_test; then
   conda create --yes -n miso_test python=3.11 cython swig metis
   conda activate miso_test
   export METIS_DIR=$CONDA_PREFIX
-  pip install mpi4py mkdocs
+  pip install mpi4py petsc4py mkdocs
 else
   conda activate miso_test
 fi
 
-echo "#########################"
-echo "Install PETSc from source"
-echo "#########################"
-cd ~/dev/petsc
-./configure
-make all check
+# echo "#########################"
+# echo "Install PETSc from source"
+# echo "#########################"
+# cd ~/dev/petsc
+# ./configure
+# make all check
 
 echo "#########################"
 echo "Build ESP"
