@@ -24,10 +24,12 @@ if command -v module &> /dev/null; then
   export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
   export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
 else
-  sudo apt install libopenmpi-dev
+  sudo apt install liblapack-dev libblas-dev libopenmpi-dev
 fi
 
+export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
 export OMPI_MCA_rmaps_base_oversubscribe=1
+export OMPI_MCA_btl=^openib
 
 #
 # need a python environment with metis, mpi4py and mkdocs
@@ -45,7 +47,7 @@ if ! conda env list | grep miso_test; then
   conda create --yes -n miso_test python=3.11 cython swig metis
   conda activate miso_test
   export METIS_DIR=$CONDA_PREFIX
-  pip install mpi4py petsc4py mkdocs
+  pip install mpi4py petsc4py=3.20 mkdocs
 else
   conda activate miso_test
 fi
