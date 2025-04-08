@@ -27,7 +27,7 @@ else
   sudo apt -qq install build-essential cmake liblapack-dev libblas-dev openmpi-bin libopenmpi-dev libz-dev
 
   export MPICC=/usr/bin/mpicc
-  export MPICXX=/usr/bin/mpicc
+  export MPICXX=/usr/bin/mpicxx
 fi
 
 export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
