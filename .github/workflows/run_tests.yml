@@ -114,7 +114,7 @@ jobs:
           echo "Test $PROJECT_NAME"
           echo "============================================================="
           eval "$(conda shell.bash hook)"
-          conda create -n benchmark python=3.12 numpy scipy matplotlib requests openssl=3.0
+          conda create -q -y -n benchmark python=3.12 numpy scipy matplotlib requests openssl=3.0
           conda activate benchmark
           pip install slack_sdk
           python benchmark.py -uk $PROJECT_NAME
