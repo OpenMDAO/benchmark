@@ -25,6 +25,8 @@ on:
         default: false
 
 
+run-name:  ${{ inputs.project_name }}
+
 permissions: {}
 
 jobs:

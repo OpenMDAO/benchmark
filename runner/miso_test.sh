@@ -20,10 +20,11 @@ if command -v module &> /dev/null; then
   eval "$(conda shell.bash hook)"
 
   module load openmpi/4.1.4/gnu/11.2.0
+
+  export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
+  export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
 fi
 
-export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
-export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
 export OMPI_MCA_rmaps_base_oversubscribe=1
 
 #
@@ -42,7 +43,7 @@ if ! conda env list | grep miso_test; then
   conda create --yes -n miso_test python=3.11 cython swig metis
   conda activate miso_test
   export METIS_DIR=$CONDA_PREFIX
-  pip install openmpi mpi4py mkdocs
+  pip install openmpi-mpicc mpi4py mkdocs
 else
   conda activate miso_test
 fi
