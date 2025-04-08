@@ -25,6 +25,9 @@ if command -v module &> /dev/null; then
   export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
 else
   sudo apt -qq install build-essential cmake liblapack-dev libblas-dev openmpi-bin libopenmpi-dev libz-dev
+
+  export MPICC=/usr/bin/mpicc
+  export MPICXX=/usr/bin/mpicc
 fi
 
 export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
