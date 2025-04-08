@@ -44,7 +44,7 @@ if conda env list | grep miso_test; then
     conda env remove -n miso_test
 fi
 if ! conda env list | grep miso_test; then
-  conda create --yes -n miso_test python=3.11 cython compilers swig metis openmpi-mpicc mpi4py petsc4py=3.20
+  conda create -q -y -n miso_test python=3.11 cython compilers swig metis openmpi-mpicc mpi4py petsc4py=3.20
   conda activate miso_test
   export METIS_DIR=$CONDA_PREFIX
   pip install mkdocs
@@ -64,10 +64,11 @@ echo "Build ESP"
 echo "#########################"
 cd $WD
 if [ ! -d "OpenCASCADE-7.4.1" ]; then
-  #wget -nv https://acdl.mit.edu/esp/otherOCCs/OCC741lin64.tgz
-  #tar -xzpf OCC741lin64.tgz
-  #rm OCC741lin64.tgz
-  tar -xzpf ~/dev/OCC741lin64.tgz
+  if [ ! -f "$HOME/OCC741lin64.tgz" ]; then
+    echo "Downloading OpenCASCADE-7.4.1"
+    wget -nv https://acdl.mit.edu/esp/otherOCCs/OCC741lin64.tgz -O $HOME/OCC741lin64.tgz
+  fi
+  tar -xzpf $HOME/OCC741lin64.tgz
 fi
 if [ ! -d "EngSketchPad" ]; then
   git clone https://github.com/tuckerbabcock/EngSketchPad
