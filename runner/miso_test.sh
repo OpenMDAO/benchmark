@@ -49,7 +49,7 @@ if conda env list | grep miso_test; then
     conda env remove -n miso_test
 fi
 if ! conda env list | grep miso_test; then
-  conda create -q -y -n miso_test python=3.11 cython swig metis hypre=2.21 mpi4py petsc4py=3.20
+  conda create -q -y -n miso_test python=3.11 cython swig metis hypre mpi4py petsc4py=3.20
   conda activate miso_test
   export METIS_DIR=$CONDA_PREFIX
   export HYPRE_DIR=$CONDA_PREFIX
