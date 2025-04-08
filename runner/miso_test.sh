@@ -23,6 +23,8 @@ if command -v module &> /dev/null; then
 
   export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
   export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
+
+  export HYPRE_DIR=/hx/software/apps/hypre/2.20.0/
 else
   sudo apt -qq install build-essential cmake liblapack-dev libblas-dev openmpi-bin libopenmpi-dev libz-dev
 
@@ -47,9 +49,10 @@ if conda env list | grep miso_test; then
     conda env remove -n miso_test
 fi
 if ! conda env list | grep miso_test; then
-  conda create -q -y -n miso_test python=3.11 cython swig metis mpi4py petsc4py=3.20
+  conda create -q -y -n miso_test python=3.11 cython swig metis hypre=2.21 mpi4py petsc4py=3.20
   conda activate miso_test
   export METIS_DIR=$CONDA_PREFIX
+  export HYPRE_DIR=$CONDA_PREFIX
   pip install mkdocs
 else
   conda activate miso_test
@@ -150,7 +153,7 @@ cmake .. \\
   -DMFEM_ENABLE_EXAMPLES=NO \\
   -DMFEM_ENABLE_MINIAPPS=NO \\
   -DMETIS_DIR="$METIS_DIR" \\
-  -DHYPRE_DIR="/hx/software/apps/hypre/2.20.0/" \\
+  -DHYPRE_DIR="$HYPRE_DIR" \\
   -DPUMI_DIR="\$WD/core/build/install" \\
   -DCMAKE_POSITION_INDEPENDENT_CODE=YES
 EOF
