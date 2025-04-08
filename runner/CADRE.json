@@ -10,15 +10,13 @@
         "unset USE_PROC_FILES",
         "export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe",
         "export OMPI_MCA_rmaps_base_oversubscribe=1",
-        "export OMPI_MCA_btl=^openib",
-        "source ~/dev/NPSSv32_src/dev/npss.env.sh"
+        "export OMPI_MCA_btl=^openib"
     ],
 
     "conda": [
-        "python=3.10",
+        "python=3.11",
         "gfortran=12",
         "numpy=1.23",
-        "'setuptools<65'",
         "scipy",
         "six"
     ],
