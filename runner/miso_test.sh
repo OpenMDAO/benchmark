@@ -24,7 +24,7 @@ if command -v module &> /dev/null; then
   export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
   export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
 else
-  sudo apt install liblapack-dev libblas-dev libopenmpi-dev libz-dev
+  sudo apt -qq install liblapack-dev libblas-dev libopenmpi-dev zlib1g-dev
 fi
 
 export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
