@@ -1558,6 +1558,7 @@ class BenchmarkRunner(object):
 
         if conf["plot_history"]:
             summary_plots = db.plot_benchmarks(save=True, show=False)
+            logging.info(f"post_results() {summary_plots=}")
             if conf.get("images") and summary_plots:
                 logging.info("post_results() uploading summary plots..")
                 rc, _, _ = upload(summary_plots, conf["images"]["upload"])
@@ -1575,7 +1576,7 @@ class BenchmarkRunner(object):
                 for plot_file in summary_plots:
                     self.slack.post_image("", "/".join([image_url, plot_file]))
             else:
-                self.slack.post_message("No benchmark history plots generated.")
+                self.slack.post_message(f"No benchmark history plots generated. {summary_plots=} {image_url=}")
 
             # check benchmarks for significant changes & post any resulting messages
             cpu_messages, mem_messages = db.check_benchmarks()
