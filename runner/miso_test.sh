@@ -13,12 +13,15 @@ export WD=$PWD
 #
 # load conda and openmpi modules
 #
-module purge
+if command -v module &> /dev/null; then
+  module purge
 
-module load miniforge/4.10.3
-eval "$(conda shell.bash hook)"
+  module load miniforge/4.10.3
+  eval "$(conda shell.bash hook)"
 
-module load openmpi/4.1.4/gnu/11.2.0
+  module load openmpi/4.1.4/gnu/11.2.0
+fi
+
 export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
 export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
 export OMPI_MCA_rmaps_base_oversubscribe=1
