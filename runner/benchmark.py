@@ -436,7 +436,7 @@ class RunScript(object):
 
         # script.append("\ncat ~/.condarc")
 
-        script.append("\nconda deactivate\nconda deactivate\n")
+        # script.append("\nconda deactivate\nconda deactivate\n")
 
         conda_spec = project["conda"]
 
