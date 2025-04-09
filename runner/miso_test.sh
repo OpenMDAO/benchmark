@@ -17,7 +17,6 @@ if command -v module &> /dev/null; then
   module purge
 
   module load miniforge/4.10.3
-  eval "$(conda shell.bash hook)"
 
   module load openmpi/4.1.4/gnu/11.2.0
 
@@ -36,17 +35,19 @@ export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
 export OMPI_MCA_rmaps_base_oversubscribe=1
 export OMPI_MCA_btl=^openib
 
+eval "$(conda shell.bash hook)"
+
 #
 # need a python environment with metis, mpi4py and mkdocs
 #
-conda deactivate
-conda deactivate
+# conda deactivate
+# conda deactivate
 
 echo "#########################"
 echo "Create Environment"
 echo "#########################"
 if conda env list | grep miso_test; then
-    conda env remove -n miso_test
+    conda env remove -n miso_test -y
 fi
 if ! conda env list | grep miso_test; then
   conda create -q -y -n miso_test python=3.11 cython swig metis hypre mpi4py petsc4py=3.20
@@ -75,6 +76,7 @@ if [ ! -d "OpenCASCADE-7.4.1" ]; then
     wget -nv https://acdl.mit.edu/esp/otherOCCs/OCC741lin64.tgz -O $HOME/OCC741lin64.tgz
   fi
   tar -xzpf $HOME/OCC741lin64.tgz
+  rm $HOME/OCC741lin64.tgz
 fi
 if [ ! -d "EngSketchPad" ]; then
   git clone https://github.com/tuckerbabcock/EngSketchPad

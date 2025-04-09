@@ -10,8 +10,10 @@
         "#!/bin/bash",
         "set -e",
         "",
-        "module purge",
-        "module load miniforge/4.10.3",
+        "if command -v module &> /dev/null; then",
+        "  module purge",
+        "  module load miniforge/4.10.3",
+        "fi",
         "eval \"$(conda shell.bash hook)\""
     ],
 
