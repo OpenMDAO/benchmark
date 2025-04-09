@@ -90,12 +90,16 @@ jobs:
 
           echo ${BENCHMARK_CONFIG} | base64 --decode >benchmark.cfg
 
+          pwd
+          ls -l
+          cat benchmark.cfg
+
           echo "============================================================="
           echo "Fetch database for $PROJECT_NAME"
           echo "============================================================="
           mkdir data
           cd data
-          wget -q openmdao.org/benchmark/test/data/$PROJECT_NAME.db  || echo "No data found for $PROJECT_NAME"
+          wget -q openmdao.org/benchmark/data/$PROJECT_NAME.db  || echo "No data found for $PROJECT_NAME"
           cd ..
           ls -l data
 
