@@ -1086,7 +1086,7 @@ class BenchmarkDatabase(object):
 
             # select only the specs that have more than one data point in the last 6 weeks
             since = time.time() - 6*7*24*60*60
-            print(f"Plotting benchmark data for {self.name} since: {since.strftime("%d %b, %Y (%a) %H:%M")}")
+            print(f"Plotting benchmark data for {self.name} since: {since}")
 
             specs = self.get_specs()
             print(f"Specs: {specs}")
