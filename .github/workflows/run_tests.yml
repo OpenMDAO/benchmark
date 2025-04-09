@@ -90,10 +90,6 @@ jobs:
 
           echo ${BENCHMARK_CONFIG} | base64 -di >benchmark.cfg
 
-          pwd
-          ls -l
-          cat benchmark.cfg
-
           echo "============================================================="
           echo "Fetch database for $PROJECT_NAME"
           echo "============================================================="
