@@ -440,7 +440,7 @@ class RunScript(object):
 
         conda_spec = project["conda"]
 
-        cmd = "conda create -v -y -n $RUN_NAME "
+        cmd = "conda create -q -y -n $RUN_NAME "
         conda_pkgs = conda_spec + [
             "git",              # for cloning git repos
             "pip",              # for installing dependencies
@@ -472,7 +472,7 @@ class RunScript(object):
             for spec in project["anaconda"]:
                 pkgs.append(spec)
             if pkgs:
-                script.append("conda install -v -c anaconda %s --yes" % " ".join(pkgs))
+                script.append("conda install -q -c anaconda %s --yes" % " ".join(pkgs))
 
         # install conda-forge dependencies
         if "conda-forge" in project:
@@ -481,7 +481,7 @@ class RunScript(object):
             for spec in project["conda-forge"]:
                 pkgs.append(spec)
             if pkgs:
-                script.append("conda install -v -c conda-forge %s --yes" % " ".join(pkgs))
+                script.append("conda install -q -c conda-forge %s --yes" % " ".join(pkgs))
 
         # install dependencies
         if "dependencies" in project:

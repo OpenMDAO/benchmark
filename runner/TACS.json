@@ -18,7 +18,8 @@
     ],
 
     "conda": [
-        "gxx_linux-64=9.3.0",
+        "sysroot_linux-64=2.17",
+        "gxx_linux-64=9.4.0",
         "python=3.10",
         "numpy",
         "scipy"
