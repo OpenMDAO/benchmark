@@ -41,6 +41,13 @@
 
     "install": [
         "conda list",
+        "echo ==========================",
+        "echo set some MPI-related environment variables",
+        "echo ==========================",
+        "export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe",
+        "export OMPI_MCA_rmaps_base_oversubscribe=1",
+        "export OMPI_MCA_btl=^openib",
+        "echo ==========================",
         "export OPTIONAL=default",
         "export INTERFACE=interface",
         "export EXAMPLES=default",
