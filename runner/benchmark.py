@@ -1057,13 +1057,10 @@ class BenchmarkDatabase(object):
         """
         generate a history plot for this projects benchmarks
         """
+        import numpy as np
+
         logging.info('plot: %s', self.name)
         filenames = []
-
-        print(f"{sys.path=}")
-        logging.info(f"{sys.path=}")
-
-        import numpy as np
 
         try:
             import matplotlib
@@ -1086,15 +1083,11 @@ class BenchmarkDatabase(object):
 
             # select only the specs that have more than one data point in the last 6 weeks
             since = time.time() - 6*7*24*60*60
-            print(f"Plotting benchmark data for {self.name} since: {since}")
-
             specs = self.get_specs()
-            print(f"Specs: {specs}")
 
             data = {}
             for spec in specs:
                 data_for_spec = self.get_data_for_spec(spec, since=since)
-                print(f"Data for spec: {spec}: {data_for_spec}")
                 if data_for_spec and len(data_for_spec['elapsed']) > 1:
                     data[spec] = data_for_spec
 
@@ -1246,9 +1239,10 @@ class BenchmarkDatabase(object):
         code, out, err = execute_cmd(backup_cmd)
         if not code:
             try:
-                dest = conf["data"]["upload"]
-                rsync_cmd = "rsync -vvv -zh " + name + ".bak " + dest + "/" + name
-                code, out, err = execute_cmd(rsync_cmd)
+                # dest = conf["data"]["upload"]
+                # rsync_cmd = "rsync -vvv -zh " + name + ".bak " + dest + "/" + name
+                # code, out, err = execute_cmd(rsync_cmd)
+                code, _, _ = upload([name], conf["data"]["upload"])
             except KeyError:
                 pass  # remote backup not configured
             except:
@@ -1558,13 +1552,9 @@ class BenchmarkRunner(object):
         image_url = None
         summary_plots = []
 
-        logging.info(f"post_results() {conf['plot_history']=} {conf['images']=}")
-
         if conf["plot_history"]:
             summary_plots = db.plot_benchmarks(save=True, show=False)
-            logging.info(f"post_results() {summary_plots=}")
             if conf.get("images") and summary_plots:
-                logging.info("post_results() uploading summary plots..")
                 rc, _, _ = upload(summary_plots, conf["images"]["upload"])
                 if rc == 0:
                     image_url = conf["images"]["url"]
@@ -1575,12 +1565,11 @@ class BenchmarkRunner(object):
             self.slack.post_message(trigger_msg + "\nBenchmarking was successful.")
 
             # post summary plots
-            logging.info(f"post_results() {summary_plots=} {image_url=}")
             if summary_plots and image_url:
                 for plot_file in summary_plots:
                     self.slack.post_image("", "/".join([image_url, plot_file]))
             else:
-                self.slack.post_message(f"No benchmark history plots generated. {summary_plots=} {image_url=}")
+                self.slack.post_message("No benchmark history plots generated.")
 
             # check benchmarks for significant changes & post any resulting messages
             cpu_messages, mem_messages = db.check_benchmarks()
