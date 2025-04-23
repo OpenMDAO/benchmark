@@ -13,7 +13,8 @@ export WD=$PWD
 #
 # load conda and openmpi modules
 #
-if command -v module &> /dev/null; then
+export MODULE=`command -v module`
+if [[ "$MODULE" == "module" ]]; then
   module purge
 
   module load miniforge/4.10.3
@@ -30,7 +31,7 @@ else
   export MPICXX=/usr/bin/mpicxx
   export METIS_DIR=/usr
   export HYPRE_DIR=/usr/include/hypre/
-  export HYPRE_INCLUDE_DIRS=/usr/include/hypre/
+  # export HYPRE_INCLUDE_DIRS=/usr/include/hypre/
 
   rm -rf $WD/tmp
   mkdir $WD/tmp
@@ -58,12 +59,19 @@ if conda env list | grep miso_test; then
 fi
 if ! conda env list | grep miso_test; then
 
-  conda create -q -y -n miso_test python=3.10 cython swig # sysroot_linux-64 gxx_linux-64 libgcc gfortran metis hypre openmpi-mpicc
+  conda create -q -y -n miso_test python=3.10 cython swig
   conda activate miso_test
+
+  # conda install sysroot_linux-64 gxx_linux-64 libgcc gfortran metis hypre openmpi-mpicc
   # export METIS_DIR=$CONDA_PREFIX
   # export HYPRE_DIR=$CONDA_PREFIX
   # export MPICC=$CONDA_PREFIX/bin/mpicc
   # export MPICXX=$CONDA_PREFIX/bin/mpicxx
+
+  if [[ "$MODULE" == "module" ]]; then
+    conda install metis
+    export METIS_DIR=$CONDA_PREFIX
+  fi
 
   pip install mpi4py mkdocs
 else
