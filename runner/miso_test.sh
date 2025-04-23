@@ -81,14 +81,14 @@ fi
 echo "#########################"
 echo "Install PETSc from source"
 echo "#########################"
-if [ ! -d "petsc-3.19.6" ]; then
-  if [ ! -f "$HOME/petsc-3.19.6.tgz" ]; then
+if [ ! -d "petsc-3.19.2" ]; then
+  if [ ! -f "$HOME/petsc-3.19.2.tgz" ]; then
     echo "Downloading PETSc..."
-    wget -nv https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-3.19.tar.gz -O $HOME/petsc-3.19.6.tgz
+    wget -nv https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-3.19.2.tar.gz -O $HOME/petsc-3.19.2.tgz
   fi
-  tar -xvzpf $HOME/petsc-3.19.6.tgz
+  tar -xzpf $HOME/petsc-3.19.2.tgz
 fi
-cd petsc-3.19.6
+cd petsc-3.19.2
 ./configure
 make -j -s all check
 
