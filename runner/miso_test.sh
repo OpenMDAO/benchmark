@@ -90,7 +90,7 @@ if [ ! -d "petsc-3.19.2" ]; then
 fi
 cd petsc-3.19.2
 ./configure
-make -j -s all check
+make all check
 
 echo "#########################"
 echo "Build ESP"
