@@ -24,10 +24,11 @@ if command -v module &> /dev/null; then
 
   export HYPRE_DIR=/hx/software/apps/hypre/2.20.0/
 else
-  sudo apt -qq install build-essential cmake liblapack-dev libblas-dev libz-dev openmpi-bin libopenmpi-dev libhypre-dev
+  sudo apt -qq install build-essential cmake liblapack-dev libblas-dev libz-dev openmpi-bin libopenmpi-dev libmetis-dev libhypre-dev
 
   export MPICC=/usr/bin/mpicc
   export MPICXX=/usr/bin/mpicxx
+  export METIS_DIR=/usr
   export HYPRE_DIR=/usr/include/hypre/
   export HYPRE_INCLUDE_DIRS=/usr/include/hypre/
 
