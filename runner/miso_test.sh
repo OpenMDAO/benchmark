@@ -19,16 +19,22 @@ if command -v module &> /dev/null; then
   module load miniforge/4.10.3
 
   module load openmpi/4.1.4/gnu/11.2.0
-
   export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
   export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
 
   export HYPRE_DIR=/hx/software/apps/hypre/2.20.0/
 else
-  sudo apt -qq install build-essential cmake liblapack-dev libblas-dev openmpi-bin libopenmpi-dev libz-dev
+  sudo apt -qq install build-essential cmake liblapack-dev libblas-dev libz-dev openmpi-bin libopenmpi-dev libhypre-dev
 
   export MPICC=/usr/bin/mpicc
   export MPICXX=/usr/bin/mpicxx
+  export HYPRE_DIR=/usr/include/hypre/
+  export HYPRE_INCLUDE_DIRS=/usr/include/hypre/
+
+  rm -rf $WD/tmp
+  mkdir $WD/tmp
+  export TMP=$WD/tmp
+  export TMPDIR=$WD/tmp
 fi
 
 export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
@@ -50,21 +56,32 @@ if conda env list | grep miso_test; then
     conda env remove -n miso_test -y
 fi
 if ! conda env list | grep miso_test; then
-  conda create -q -y -n miso_test python=3.11 cython swig metis hypre mpi4py petsc4py=3.20
+
+  conda create -q -y -n miso_test python=3.10 cython swig # sysroot_linux-64 gxx_linux-64 libgcc gfortran metis hypre openmpi-mpicc
   conda activate miso_test
-  export METIS_DIR=$CONDA_PREFIX
-  export HYPRE_DIR=$CONDA_PREFIX
-  pip install mkdocs
+  # export METIS_DIR=$CONDA_PREFIX
+  # export HYPRE_DIR=$CONDA_PREFIX
+  # export MPICC=$CONDA_PREFIX/bin/mpicc
+  # export MPICXX=$CONDA_PREFIX/bin/mpicxx
+
+  pip install mpi4py mkdocs
 else
   conda activate miso_test
 fi
 
-# echo "#########################"
-# echo "Install PETSc from source"
-# echo "#########################"
-# cd ~/dev/petsc
-# ./configure
-# make all check
+echo "#########################"
+echo "Install PETSc from source"
+echo "#########################"
+if [ ! -d "petsc-3.19.6" ]; then
+  if [ ! -f "$HOME/petsc-3.19.6.tgz" ]; then
+    echo "Downloading PETSc..."
+    wget -nv https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-3.19.tar.gz -O $HOME/petsc-3.19.6.tgz
+  fi
+  tar -xvzpf $HOME/petsc-3.19.6.tgz
+fi
+cd petsc-3.19.6
+./configure
+make all check
 
 echo "#########################"
 echo "Build ESP"
@@ -126,7 +143,7 @@ cmake .. \\
   -DCMAKE_INSTALL_PREFIX=./install
 EOF
 source config_pumi.sh
-make -j 4
+make
 make install
 
 echo "#########################"
@@ -160,7 +177,7 @@ cmake .. \\
   -DCMAKE_POSITION_INDEPENDENT_CODE=YES
 EOF
 source config_mfem.sh
-make -j
+make
 
 echo "#########################"
 echo "Build Adept-2"
@@ -215,8 +232,8 @@ set +e
 source miso_config.sh
 set -e
 source miso_config.sh
-make -j
-make build_tests -j
+make
+make build_tests
 ctest --output-on-failure
 make install
 
