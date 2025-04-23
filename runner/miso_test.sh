@@ -90,7 +90,7 @@ if [ ! -d "petsc-3.19.6" ]; then
 fi
 cd petsc-3.19.6
 ./configure
-make all check
+make -j -s all check
 
 echo "#########################"
 echo "Build ESP"
@@ -115,7 +115,7 @@ git pull
 cd ..
 source ESPenv.sh
 cd src
-make
+make -j -s
 
 echo "#########################"
 echo "Build PUMI"
@@ -152,7 +152,7 @@ cmake .. \\
   -DCMAKE_INSTALL_PREFIX=./install
 EOF
 source config_pumi.sh
-make
+make -j -s
 make install
 
 echo "#########################"
@@ -186,7 +186,7 @@ cmake .. \\
   -DCMAKE_POSITION_INDEPENDENT_CODE=YES
 EOF
 source config_mfem.sh
-make
+make -j -s
 
 echo "#########################"
 echo "Build Adept-2"
@@ -202,7 +202,7 @@ touch README
 aclocal; autoupdate; autoheader; autoconf
 libtoolize; autoreconf -i
 ./configure --prefix="$PWD/../adept_install"
-make
+make -j -s
 make check
 set +e
 make install
@@ -241,7 +241,7 @@ set +e
 source miso_config.sh
 set -e
 source miso_config.sh
-make
+make -j -s
 make build_tests
 ctest --output-on-failure
 make install
