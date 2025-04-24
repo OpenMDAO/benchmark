@@ -53,8 +53,6 @@ eval "$(conda shell.bash hook)"
 #
 # need a python environment with metis, mpi4py and mkdocs
 #
-# conda deactivate
-# conda deactivate
 
 echo "#########################"
 echo "Create Environment"
@@ -77,6 +75,8 @@ if ! conda env list | grep miso_test; then
     conda install metis
   fi
 
+  pip install --upgrade pip
+  
   pip install mpi4py mkdocs
 else
   conda activate miso_test
@@ -250,7 +250,7 @@ source miso_config.sh
 set -e
 source miso_config.sh
 make -s $J
-make build_tests $J
+make build_tests
 ctest --output-on-failure
 make install
 
