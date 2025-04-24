@@ -11,43 +11,92 @@ set -e
 export WD=$PWD
 
 #
-# load conda and openmpi modules
+# if we have 'module', use system assets
 #
-module purge
+export MODULE=`command -v module`
+if [[ "$MODULE" == "module" ]]; then
+  module purge
 
-module load miniforge/4.10.3
-eval "$(conda shell.bash hook)"
+  module load miniforge/4.10.3
 
-module load openmpi/4.1.4/gnu/11.2.0
-export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
-export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
+  module load openmpi/4.1.4/gnu/11.2.0
+  export MPICC=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicc
+  export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
+
+  export HYPRE_DIR=/hx/software/apps/hypre/2.20.0/
+
+  export J='-j'
+else
+  sudo apt -qq install build-essential cmake liblapack-dev libblas-dev libz-dev openmpi-bin libopenmpi-dev libmetis-dev libhypre-dev
+
+  export MPICC=/usr/bin/mpicc
+  export MPICXX=/usr/bin/mpicxx
+  export METIS_DIR=/usr
+  export HYPRE_DIR=/usr/include/hypre/
+  # export HYPRE_INCLUDE_DIRS=/usr/include/hypre/
+
+  rm -rf $WD/tmp
+  mkdir $WD/tmp
+  export TMP=$WD/tmp
+  export TMPDIR=$WD/tmp
+
+  # running make with multiple threads on GitHub actions results in the workflow being killed with error code 143 (resources exhausted)
+  export J=
+fi
+
+export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
 export OMPI_MCA_rmaps_base_oversubscribe=1
+export OMPI_MCA_btl=^openib
+
+eval "$(conda shell.bash hook)"
 
 #
 # need a python environment with metis, mpi4py and mkdocs
 #
-conda deactivate
-conda deactivate
 
 echo "#########################"
 echo "Create Environment"
 echo "#########################"
 if conda env list | grep miso_test; then
-    conda env remove -n miso_test
+    conda env remove -n miso_test -y
 fi
 if ! conda env list | grep miso_test; then
-  conda create --yes -n miso_test python=3.10 cython swig metis
+
+  conda create -q -y -n miso_test python=3.10 cython swig
   conda activate miso_test
-  export METIS_DIR=$CONDA_PREFIX
+
+  # conda install sysroot_linux-64 gxx_linux-64 libgcc gfortran metis hypre openmpi-mpicc
+  # export METIS_DIR=$CONDA_PREFIX
+  # export HYPRE_DIR=$CONDA_PREFIX
+  # export MPICC=$CONDA_PREFIX/bin/mpicc
+  # export MPICXX=$CONDA_PREFIX/bin/mpicxx
+
+  if [[ "$MODULE" == "module" ]]; then
+    conda install metis
+  fi
+
+  pip install --upgrade pip
+
   pip install mpi4py mkdocs
 else
   conda activate miso_test
 fi
 
+if conda list | grep metis; then
+  export METIS_DIR=$CONDA_PREFIX
+fi
+
 echo "#########################"
 echo "Install PETSc from source"
 echo "#########################"
-cd ~/dev/petsc
+if [ ! -d "petsc-3.19.2" ]; then
+  if [ ! -f "$HOME/petsc-3.19.2.tgz" ]; then
+    echo "Downloading PETSc..."
+    wget -nv https://web.cels.anl.gov/projects/petsc/download/release-snapshots/petsc-3.19.2.tar.gz -O $HOME/petsc-3.19.2.tgz
+  fi
+  tar -xzpf $HOME/petsc-3.19.2.tgz
+fi
+cd petsc-3.19.2
 ./configure
 make all check
 
@@ -56,10 +105,12 @@ echo "Build ESP"
 echo "#########################"
 cd $WD
 if [ ! -d "OpenCASCADE-7.4.1" ]; then
-  #wget -nv https://acdl.mit.edu/esp/otherOCCs/OCC741lin64.tgz
-  #tar -xzpf OCC741lin64.tgz
-  #rm OCC741lin64.tgz
-  tar -xzpf ~/dev/OCC741lin64.tgz
+  if [ ! -f "$HOME/OCC741lin64.tgz" ]; then
+    echo "Downloading OpenCASCADE-7.4.1"
+    wget -nv https://acdl.mit.edu/esp/otherOCCs/OCC741lin64.tgz -O $HOME/OCC741lin64.tgz
+  fi
+  tar -xzpf $HOME/OCC741lin64.tgz
+  rm $HOME/OCC741lin64.tgz
 fi
 if [ ! -d "EngSketchPad" ]; then
   git clone https://github.com/tuckerbabcock/EngSketchPad
@@ -72,7 +123,7 @@ git pull
 cd ..
 source ESPenv.sh
 cd src
-make
+make -s
 
 echo "#########################"
 echo "Build PUMI"
@@ -109,7 +160,7 @@ cmake .. \\
   -DCMAKE_INSTALL_PREFIX=./install
 EOF
 source config_pumi.sh
-make -j 4
+make -s $J
 make install
 
 echo "#########################"
@@ -138,12 +189,12 @@ cmake .. \\
   -DMFEM_ENABLE_EXAMPLES=NO \\
   -DMFEM_ENABLE_MINIAPPS=NO \\
   -DMETIS_DIR="$METIS_DIR" \\
-  -DHYPRE_DIR="/hx/software/apps/hypre/2.20.0/" \\
+  -DHYPRE_DIR="$HYPRE_DIR" \\
   -DPUMI_DIR="\$WD/core/build/install" \\
   -DCMAKE_POSITION_INDEPENDENT_CODE=YES
 EOF
 source config_mfem.sh
-make -j
+make -s $J
 
 echo "#########################"
 echo "Build Adept-2"
@@ -159,7 +210,7 @@ touch README
 aclocal; autoupdate; autoheader; autoconf
 libtoolize; autoreconf -i
 ./configure --prefix="$PWD/../adept_install"
-make
+make -s
 make check
 set +e
 make install
@@ -198,8 +249,8 @@ set +e
 source miso_config.sh
 set -e
 source miso_config.sh
-make -j
-make build_tests
+make -s $J
+make build_tests $J
 ctest --output-on-failure
 make install
 

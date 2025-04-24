@@ -10,14 +10,16 @@
         "#!/bin/bash",
         "set -e",
         "",
-        "module purge",
-        "module load miniforge/4.10.3",
+        "if command -v module &> /dev/null; then",
+        "  module purge",
+        "  module load miniforge/4.10.3",
+        "fi",
         "eval \"$(conda shell.bash hook)\""
     ],
 
     "conda": [
         "sysroot_linux-64=2.17",
-        "gxx_linux-64=9.3.0",
+        "gxx_linux-64=9.4.0",
         "python=3.10",
         "numpy",
         "scipy"
@@ -26,7 +28,10 @@
     "conda-forge": [
         "mpi4py=3.1.6",
         "metis=5.1.0",
-        "petsc4py"
+        "petsc4py",
+        "liblapack",
+        "gcc",
+        "gfortran"
     ],
 
     "dependencies": [
@@ -36,6 +41,13 @@
 
     "install": [
         "conda list",
+        "echo ==========================",
+        "echo set some MPI-related environment variables",
+        "echo ==========================",
+        "export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe",
+        "export OMPI_MCA_rmaps_base_oversubscribe=1",
+        "export OMPI_MCA_btl=^openib",
+        "echo ==========================",
         "export OPTIONAL=default",
         "export INTERFACE=interface",
         "export EXAMPLES=default",

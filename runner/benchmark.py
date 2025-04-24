@@ -50,7 +50,8 @@ conf = {
     # script needs at least bash and conda
     "script_prefix": [
         "#!/bin/bash",
-        "set -e"
+        "set -e",
+        "eval \"$(conda shell.bash hook)\""
     ],
 
     # remove benchmark data file after adding to database
@@ -129,7 +130,6 @@ def init_env(project_info):
             val = val.replace("$PYTHONPATH", "")  # in case it was empty
             logging.info("setting %s ENV: %s=%s", project_info["name"], key,  val)
             env[key] = val
-
 
 
 def execute_cmd(cmd, shell=False, merge_streams=False, stdin=None):
@@ -288,12 +288,16 @@ def conda(name):
     # modify PATH for environment
     path = env["PATH"].split(os.pathsep)
     for dirname in path:
-        if ("anaconda" in dirname or "miniconda" in dirname or "miniforge" in dirname) and dirname.endswith("/bin"):
+        if ("anaconda" in dirname or "miniconda" in dirname or "miniforge" in dirname) and \
+           (dirname.endswith("/bin") or dirname.endswith("/condabin")):
             conda_dir = dirname
             path.remove(conda_dir)
             break
 
-    env_path = conda_dir.replace("/bin", "/envs/"+name)
+    if conda_dir.endswith("/condabin"):
+        env_path = conda_dir.replace("/condabin", "/envs/"+name)
+    else:
+        env_path = conda_dir.replace("/bin", "/envs/"+name)
     env["PATH"] = prepend_path(env_path+"/bin", (os.pathsep).join(path))
 
     logging.info('> switching environment (into %s)', name)
@@ -432,11 +436,11 @@ class RunScript(object):
 
         # script.append("\ncat ~/.condarc")
 
-        script.append("\nconda deactivate\nconda deactivate\n")
+        # script.append("\nconda deactivate\nconda deactivate\n")
 
         conda_spec = project["conda"]
 
-        cmd = "conda create -y -q -n $RUN_NAME "
+        cmd = "conda create -q -y -n $RUN_NAME "
         conda_pkgs = conda_spec + [
             "git",              # for cloning git repos
             "pip",              # for installing dependencies
@@ -468,7 +472,7 @@ class RunScript(object):
             for spec in project["anaconda"]:
                 pkgs.append(spec)
             if pkgs:
-                script.append("conda install -c anaconda %s --yes" % " ".join(pkgs))
+                script.append("conda install -q -c anaconda %s --yes" % " ".join(pkgs))
 
         # install conda-forge dependencies
         if "conda-forge" in project:
@@ -477,7 +481,7 @@ class RunScript(object):
             for spec in project["conda-forge"]:
                 pkgs.append(spec)
             if pkgs:
-                script.append("conda install -c conda-forge %s --yes" % " ".join(pkgs))
+                script.append("conda install -q -c conda-forge %s --yes" % " ".join(pkgs))
 
         # install dependencies
         if "dependencies" in project:
@@ -1059,6 +1063,12 @@ class BenchmarkDatabase(object):
         filenames = []
 
         try:
+            import matplotlib
+            matplotlib.use('Agg')
+        except Exception as err:
+            logging.info("matplotlib is not available: %s" % err)
+
+        try:
             if not show:
                 import matplotlib
                 matplotlib.use('Agg')
@@ -1154,7 +1164,7 @@ class BenchmarkDatabase(object):
 
                 pyplot.close(fig)
 
-        except ImportError as err:
+        except (ImportError, ModuleNotFoundError) as err:
             logging.info("numpy and matplotlib are required to plot benchmark data: %s" % err)
 
         return filenames
@@ -1229,9 +1239,10 @@ class BenchmarkDatabase(object):
         code, out, err = execute_cmd(backup_cmd)
         if not code:
             try:
-                dest = conf["data"]["upload"]
-                rsync_cmd = "rsync -zvh " + name + ".bak " + dest + "/" + name
-                code, out, err = execute_cmd(rsync_cmd)
+                # dest = conf["data"]["upload"]
+                # rsync_cmd = "rsync -vvv -zh " + name + ".bak " + dest + "/" + name
+                # code, out, err = execute_cmd(rsync_cmd)
+                code, _, _ = upload([name], conf["data"]["upload"])
             except KeyError:
                 pass  # remote backup not configured
             except:
@@ -1657,6 +1668,7 @@ def main(args=None):
             project_info = read_json(project_file)
 
             if project_info.get("skip"):  # and not options.force:
+                logging.info("Skipping %s", project_file)
                 continue
 
             project_name = os.path.basename(project_file).rsplit('.', 1)[0]

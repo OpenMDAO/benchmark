@@ -5,7 +5,10 @@
     ],
 
     "preinstall": [
-        "unset USE_PROC_FILES"
+        "unset USE_PROC_FILES",
+        "export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe",
+        "export OMPI_MCA_rmaps_base_oversubscribe=1",
+        "export OMPI_MCA_btl=^openib"
     ],
 
     "conda": [
@@ -16,7 +19,10 @@
 
     "conda-forge": [
         "mpi4py",
-        "petsc4py"
+        "petsc4py",
+        "liblapack",
+        "gcc",
+        "gfortran"
     ],
 
     "dependencies": [
@@ -31,7 +37,7 @@
 
     "postinstall": [
         "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
-        "build_pyoptsparse -b v2.10.1 -s ~/dev/snopt7/src"
+        "build_pyoptsparse -b v2.13.0 -s ~/dev/snopt7/src"
     ],
 
     "NOnotify": [

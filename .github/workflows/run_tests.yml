@@ -1,0 +1,145 @@
+# Run Tests
+name: Run Tests
+
+on:
+  # # Run the workflow nightly at 0000 UTC
+  # schedule:
+  #   - cron: '0 0 * * *'
+
+  # Allow running the workflow manually from the Actions tab
+  # All jobs are excluded by default, desired jobs must be selected
+  workflow_dispatch:
+
+    inputs:
+
+      project_name:
+        description: 'Enter the name of the project to test:'
+        type: string
+        required: false
+        default: ''
+
+      debug_enabled:
+        type: boolean
+        description: 'Enable tmate debugging (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+
+
+run-name:  ${{ inputs.project_name }}
+
+permissions: {}
+
+jobs:
+
+  get_project_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: generate matrix
+        id: set-matrix
+        run: |
+          cd $GITHUB_WORKSPACE/runner
+          MATRIX=`python ../.github/scripts/build_matrix.py "${{ inputs.project_name }}"`
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "cat GITHUB_OUTPUT:"
+          cat $GITHUB_OUTPUT
+
+  test_project:
+    needs: get_project_matrix
+
+    timeout-minutes: 300
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.get_project_matrix.outputs.matrix) }}
+
+    steps:
+
+      - name: Create SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          sudo chmod 600 ~/.ssh/id_rsa
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          channels: conda-forge
+          auto-activate-base: true
+          activate-environment: ""
+
+      - name: Run tests for ${{ matrix.project_name }}
+        env:
+          PROJECT_NAME: ${{ matrix.project_name }}
+          BENCHMARK_CONFIG: ${{ secrets.BENCHMARK_CONFIG }}
+        run: |
+          cd $GITHUB_WORKSPACE/runner
+
+          echo ${BENCHMARK_CONFIG} | base64 -di >benchmark.cfg
+
+          echo "============================================================="
+          echo "Fetch database for $PROJECT_NAME"
+          echo "============================================================="
+          mkdir data
+          cd data
+          wget -q openmdao.org/benchmark/data/$PROJECT_NAME.db  || echo "No data found for $PROJECT_NAME"
+          cd ..
+          ls -l data
+
+          echo "============================================================="
+          echo "Fetch SNOPT source if needed"
+          echo "============================================================="
+          SNOPT_DIR=`grep snopt $PROJECT_NAME.json | awk -F ' ' '{print $NF}' | tr -d '"'`
+          if [ -n "$SNOPT_DIR" ]; then
+            SNOPT_DIR="${SNOPT_DIR/\~/$HOME}"
+            echo "$SNOPT_DIR"
+            mkdir -p $SNOPT_DIR
+            scp -qr ${{ secrets.SNOPT_LOCATION }} $SNOPT_DIR
+          fi
+
+          echo "============================================================="
+          echo "Test $PROJECT_NAME"
+          echo "============================================================="
+          eval "$(conda shell.bash hook)"
+          conda create -q -y -n benchmark python=3.12 numpy scipy matplotlib requests openssl=3.0
+          conda activate benchmark
+          pip install slack_sdk
+          python benchmark.py -uk $PROJECT_NAME
+          ls -l data
+
+      - name: Display run log
+        run: |
+          for f in $(find /home/runner/work/benchmark/benchmark/runner/logs -name '*.log'); do
+            echo "============================================================="
+            echo $f
+            echo "============================================================="
+            cat $f
+          done
+
+      - name: Display test logs
+        run: |
+          for f in $(find /home/runner/work/benchmark/benchmark/runner/repos -name '*.log'); do
+            echo "============================================================="
+            echo $f
+            echo "============================================================="
+            cat $f
+          done
+
+      - name: Setup tmate session
+        if: inputs.debug_enabled
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
