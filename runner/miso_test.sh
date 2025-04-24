@@ -76,7 +76,7 @@ if ! conda env list | grep miso_test; then
   fi
 
   pip install --upgrade pip
-  
+
   pip install mpi4py mkdocs
 else
   conda activate miso_test
