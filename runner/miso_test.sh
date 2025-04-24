@@ -39,6 +39,8 @@ else
   mkdir $WD/tmp
   export TMP=$WD/tmp
   export TMPDIR=$WD/tmp
+
+  # running make with multiple threads on GitHub actions results in the workflow being killed with error code 143 (resources exhausted)
   export J=
 fi
 
