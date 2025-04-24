@@ -39,6 +39,7 @@ else
   mkdir $WD/tmp
   export TMP=$WD/tmp
   export TMPDIR=$WD/tmp
+  export J=
 fi
 
 export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
