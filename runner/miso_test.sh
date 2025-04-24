@@ -70,12 +70,15 @@ if ! conda env list | grep miso_test; then
 
   if [[ "$MODULE" == "module" ]]; then
     conda install metis
-    export METIS_DIR=$CONDA_PREFIX
   fi
 
   pip install mpi4py mkdocs
 else
   conda activate miso_test
+fi
+
+if conda list | grep metis; then
+  export METIS_DIR=$CONDA_PREFIX
 fi
 
 echo "#########################"
@@ -115,7 +118,7 @@ git pull
 cd ..
 source ESPenv.sh
 cd src
-make -j -s
+make -s
 
 echo "#########################"
 echo "Build PUMI"
@@ -202,7 +205,7 @@ touch README
 aclocal; autoupdate; autoheader; autoconf
 libtoolize; autoreconf -i
 ./configure --prefix="$PWD/../adept_install"
-make -j -s
+make -s
 make check
 set +e
 make install
