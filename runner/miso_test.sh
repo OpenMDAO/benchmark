@@ -250,7 +250,7 @@ source miso_config.sh
 set -e
 source miso_config.sh
 make -s $J
-make build_tests
+make build_tests $J
 ctest --output-on-failure
 make install
 

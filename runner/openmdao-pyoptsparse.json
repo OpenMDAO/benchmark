@@ -1,6 +1,8 @@
 {
     "repository": "git@github.com:openmdao/OpenMDAO",
 
+    "skip": "true",
+
     "triggers": [
         "git@github.com:mdolab/pyoptsparse/releases"
     ],
@@ -15,7 +17,7 @@
     ],
 
     "conda": [
-        "python=3.10",
+        "python=3.13",
         "gfortran=12",
         "numpy",
         "scipy",
