@@ -155,7 +155,7 @@ cmake .. \\
   -DCMAKE_INSTALL_PREFIX=./install
 EOF
 source config_pumi.sh
-make -j -s
+make -s
 make install
 
 echo "#########################"
@@ -189,7 +189,7 @@ cmake .. \\
   -DCMAKE_POSITION_INDEPENDENT_CODE=YES
 EOF
 source config_mfem.sh
-make -j -s
+make -s
 
 echo "#########################"
 echo "Build Adept-2"
@@ -244,7 +244,7 @@ set +e
 source miso_config.sh
 set -e
 source miso_config.sh
-make -j -s
+make -s
 make build_tests
 ctest --output-on-failure
 make install
