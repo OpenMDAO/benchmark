@@ -11,7 +11,7 @@ set -e
 export WD=$PWD
 
 #
-# load conda and openmpi modules
+# if we have 'module', use system assets
 #
 export MODULE=`command -v module`
 if [[ "$MODULE" == "module" ]]; then
@@ -24,6 +24,8 @@ if [[ "$MODULE" == "module" ]]; then
   export MPICXX=/cryo/sw/openmpi/4.1.4/gnu/11.2.0/bin/mpicxx
 
   export HYPRE_DIR=/hx/software/apps/hypre/2.20.0/
+
+  export J='-j'
 else
   sudo apt -qq install build-essential cmake liblapack-dev libblas-dev libz-dev openmpi-bin libopenmpi-dev libmetis-dev libhypre-dev
 
@@ -155,7 +157,7 @@ cmake .. \\
   -DCMAKE_INSTALL_PREFIX=./install
 EOF
 source config_pumi.sh
-make -s
+make -s $J
 make install
 
 echo "#########################"
@@ -189,7 +191,7 @@ cmake .. \\
   -DCMAKE_POSITION_INDEPENDENT_CODE=YES
 EOF
 source config_mfem.sh
-make -s
+make -s $J
 
 echo "#########################"
 echo "Build Adept-2"
@@ -244,8 +246,8 @@ set +e
 source miso_config.sh
 set -e
 source miso_config.sh
-make -s
-make build_tests
+make -s $J
+make build_tests $J
 ctest --output-on-failure
 make install
 
