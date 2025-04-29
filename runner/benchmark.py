@@ -1242,7 +1242,7 @@ class BenchmarkDatabase(object):
                 # dest = conf["data"]["upload"]
                 # rsync_cmd = "rsync -vvv -zh " + name + ".bak " + dest + "/" + name
                 # code, out, err = execute_cmd(rsync_cmd)
-                code, _, _ = upload([name], conf["data"]["upload"])
+                code, _, _ = upload([name], "/".join(conf["data"]["upload"], conf["data_dir"]))
             except KeyError:
                 pass  # remote backup not configured
             except:
