@@ -37,7 +37,7 @@
 
     "postinstall": [
         "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
-        "build_pyoptsparse -b v2.13.0 -s ~/dev/snopt7/src"
+        "build_pyoptsparse -v -b v2.13.1 -s ~/dev/snopt7/src"
     ],
 
     "NOnotify": [
