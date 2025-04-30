@@ -1360,9 +1360,15 @@ class BenchmarkRunner(object):
                             self.slack.post_message("%s Testing was successful." % trigger_msg)
                         if out:
                             test_log = os.path.join(repo_name, "%s.txt" % run_name)
-                            with open(test_log, "w") as f:
-                                f.write(out)
-                            self.slack.post_file(test_log)
+                            if not os.path.exists(test_log):
+                                good_commits = False
+                                logging.error("unit test results file (%s) was not found.  something has gone wrong." % test_log)
+                                if self.slack:
+                                    self.slack.post_message("unit test results file (%s) was not found..." % test_log, notify=notify)
+                            else:
+                                with open(test_log, "w") as f:
+                                    f.write(out)
+                                self.slack.post_file(test_log)
                     else:
                         # generate script and then run it
                         script = RunScript(run_name, project, unit_tests, keep_env)
@@ -1373,9 +1379,10 @@ class BenchmarkRunner(object):
                             test_log = os.path.join(repo_name, "%s.log" % run_name)
                             logging.info("unit test results file: %s", test_log)
                             if not os.path.exists(test_log):
-                                logging.error("unit test results (%s) not found.  something has gone wrong." % test_log)
+                                good_commits = False
+                                logging.error("unit test results file (%s) was not found.  something has gone wrong." % test_log)
                                 if self.slack:
-                                    self.slack.post_message("%s However, no unit test results were found..." % trigger_msg, notify=notify)
+                                    self.slack.post_message("%s However, unit test results file was not found..." % trigger_msg, notify=notify)
                             else:
                                 for line in open(test_log):
                                     if line.startswith("Failed:"):
