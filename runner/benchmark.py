@@ -574,7 +574,7 @@ class RunScript(object):
             benchmark_cmd = "%s $RUN_NAME -o $RUN_NAME-bm.log -d $RUN_NAME.csv -t %s" % (benchmark_cmd,
                             project.get("benchmark_timeout", conf.get("benchmark_timeout", 3600)))
         else:
-            benchmark_cmd = "testflo --pre-announcee -bvs -o $RUN_NAME-bm.log -d $RUN_NAME.csv --timeout=%d" % \
+            benchmark_cmd = "testflo --pre_announcee -bvs -o $RUN_NAME-bm.log -d $RUN_NAME.csv --timeout=%d" % \
                             project.get("benchmark_timeout", conf.get("benchmark_timeout", 3600))
         script.append("if [ $? -eq 0 ]; then")
         script.append(benchmark_cmd)
