@@ -12,8 +12,8 @@
     ],
 
     "conda": [
-        "python=3.12",
-        "numpy=1",
+        "python=3.13",
+        "numpy=2",
         "scipy"
     ],
 
