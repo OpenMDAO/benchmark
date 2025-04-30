@@ -13,8 +13,8 @@
     ],
 
     "conda": [
-        "python=3.12",
-        "numpy=1",
+        "python=3.13",
+        "numpy=2",
         "scipy"
     ],
 
@@ -34,7 +34,7 @@
 
     "postinstall": [
         "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
-        "build_pyoptsparse -b v2.13.0 -s ~/dev/snopt7/src"
+        "build_pyoptsparse -b v2.13.1 -s ~/dev/snopt7/src"
     ],
 
     "NOnotify": [
