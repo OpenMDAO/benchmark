@@ -1360,16 +1360,9 @@ class BenchmarkRunner(object):
                             self.slack.post_message("%s Testing was successful." % trigger_msg)
                         if out:
                             test_log = os.path.join(repo_name, "%s.txt" % run_name)
-                            if not os.path.exists(test_log):
-                                good_commits = False
-                                logging.error("unit test results file (%s) was not found.  something has gone wrong." % test_log)
-                                logging.info("files: %s", str(os.listdir(repo_name)))
-                                if self.slack:
-                                    self.slack.post_message("unit test results file (%s) was not found..." % test_log, notify=notify)
-                            else:
-                                with open(test_log, "w") as f:
-                                    f.write(out)
-                                self.slack.post_file(test_log)
+                            with open(test_log, "w") as f:
+                                f.write(out)
+                            self.slack.post_file(test_log)
                     else:
                         # generate script and then run it
                         script = RunScript(run_name, project, unit_tests, keep_env)
