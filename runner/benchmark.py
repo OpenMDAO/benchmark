@@ -564,7 +564,7 @@ class RunScript(object):
                 else:
                     script.append(test_cmd)
             else:
-                script.append("testflo -n 1 --timeout=%d --durations=25 --show_skipped -o $RUN_NAME.log" %
+                script.append("testflo -n 1 --timeout=%d --durations=25 --show_skipped -o $RUN_NAME-test.log" %
                               project.get("test_timeout", conf.get("test_timeout", 120)))
 
         # run benchmarks
@@ -1366,37 +1366,53 @@ class BenchmarkRunner(object):
                     else:
                         # generate script and then run it
                         script = RunScript(run_name, project, unit_tests, keep_env)
+                        logging.info("Running generated script: %s" % script)
                         script.execute()
 
                         # check for failed unit tests
                         if unit_tests:
-                            test_log = os.path.join(repo_name, "%s.log" % run_name)
+                            test_log = os.path.join(repo_name, "%s-test.log" % run_name)
                             logging.info("unit test results file: %s", test_log)
-                            for line in open(test_log):
-                                if line.startswith("Failed:"):
-                                    logging.info("test failures (%s): %s", line.split()[1], line)
-                                    test_failures = line.split()[1]
-                                    if test_failures != "0":
-                                        good_commits = False
-                                        if self.slack:
-                                            logging.error("%s However, %s unit test(s) failed...", trigger_msg, test_failures)
-                                            self.slack.post_message("%s However, %s unit test(s) failed..." % (trigger_msg, test_failures), notify=notify)
-                                            self.slack.post_file(test_log)
+                            if not os.path.exists(test_log):
+                                good_commits = False
+                                logging.error("unit test results file (%s) was not found.  something has gone wrong." % test_log)
+                                logging.info("files: %s", str(os.listdir()))
+                                good_commits = False
+                                if self.slack:
+                                    self.slack.post_message("%s However, unit test results file was not found..." % trigger_msg, notify=notify)
+                            else:
+                                for line in open(test_log):
+                                    if line.startswith("Failed:"):
+                                        logging.info("test failures (%s): %s", line.split()[1], line)
+                                        test_failures = line.split()[1]
+                                        if test_failures != "0":
+                                            good_commits = False
+                                            if self.slack:
+                                                logging.error("%s However, %s unit test(s) failed...", trigger_msg, test_failures)
+                                                self.slack.post_message("%s However, %s unit test(s) failed..." % (trigger_msg, test_failures), notify=notify)
+                                                self.slack.post_file(test_log)
 
                         # check for failed benchmarks
                         if good_commits or not unit_tests:
                             benchmark_log = os.path.join(repo_name, "%s-bm.log" % run_name)
                             logging.info("benchmark results file: %s", benchmark_log)
-                            for line in open(benchmark_log):
-                                if line.startswith("Failed:"):
-                                    logging.info("benchmark failures (%s): %s", line.split()[1], line)
-                                    benchmark_fails = line.split()[1]
-                                    if benchmark_fails != "0":
-                                        good_commits = False
-                                        if self.slack:
-                                            logging.error("%s However, %s benchmark(s) failed...", trigger_msg, benchmark_fails)
-                                            self.slack.post_message("%s However, %s benchmark(s) failed..." % (trigger_msg, benchmark_fails), notify=notify)
-                                            self.slack.post_file(benchmark_log)
+                            if not os.path.exists(benchmark_log):
+                                logging.error("benchmark results file (%s) not found.  something has gone wrong." % benchmark_log)
+                                logging.info("files: %s", str(os.listdir()))
+                                good_commits = False
+                                if self.slack:
+                                    self.slack.post_message("%s However, benchmark results file was not found..." % trigger_msg, notify=notify)
+                            else:
+                                for line in open(benchmark_log):
+                                    if line.startswith("Failed:"):
+                                        logging.info("benchmark failures (%s): %s", line.split()[1], line)
+                                        benchmark_fails = line.split()[1]
+                                        if benchmark_fails != "0":
+                                            good_commits = False
+                                            if self.slack:
+                                                logging.error("%s However, %s benchmark(s) failed...", trigger_msg, benchmark_fails)
+                                                self.slack.post_message("%s However, %s benchmark(s) failed..." % (trigger_msg, benchmark_fails), notify=notify)
+                                                self.slack.post_file(benchmark_log)
 
                     if good_commits:
                         # get list of installed dependencies

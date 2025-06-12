@@ -37,10 +37,10 @@
 
     "test_cmd": [
         "FAIL1=0",
-        "testflo --timeout=120 --show_skipped -o $RUN_NAME.log || FAIL1=$?",
+        "testflo --timeout=120 --show_skipped -o $RUN_NAME-test.log || FAIL1=$?",
         "FAIL2=0",
         "testflo --timeout=1500 --show_skipped -o $RUN_NAME.bench.log --testmatch=bench_test* || FAIL2=$?",
-        "cat $RUN_NAME.bench.log >> $RUN_NAME.log",
+        "cat $RUN_NAME.bench.log >> $RUN_NAME-test.log",
         "if [ $FAIL1 -ne 0 ] || [ $FAIL2 -ne 0 ]; then",
         "  exit 1",
         "fi"
