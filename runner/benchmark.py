@@ -1231,8 +1231,8 @@ class BenchmarkDatabase(object):
         name = self.dbname
 
         # first save the previous backup, if any
-        save_cmd = "mv -f " + name + ".bak " + name + ".prev"
-        code, out, err = execute_cmd(save_cmd)
+        # save_cmd = "mv -f " + name + ".bak " + name + ".prev"
+        # code, out, err = execute_cmd(save_cmd)
 
         # create a new backup of the current database and upload it
         backup_cmd = "sqlite3 " + name + " \".backup " + name + ".bak\""
