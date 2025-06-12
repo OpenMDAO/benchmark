@@ -78,8 +78,8 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           channels: conda-forge
+          conda-remove-defaults: "true"
           auto-activate-base: true
-          activate-environment: ""
 
       - name: Run tests for ${{ matrix.project_name }}
         env:
