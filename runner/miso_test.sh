@@ -75,9 +75,9 @@ if ! conda env list | grep miso_test; then
     conda install metis
   fi
 
-  pip install --upgrade pip
+  python -m pip install --upgrade pip
 
-  pip install mpi4py mkdocs
+  python -m pip install mpi4py mkdocs
 else
   conda activate miso_test
 fi
@@ -265,14 +265,14 @@ fi
 
 cd OpenMDAO
 git pull
-pip install --upgrade -e .[test]
+python -m pip install --upgrade -e .[test]
 
 echo "#########################"
 echo "Test miso python wrapper"
 echo "#########################"
 cd $WD
 cd miso
-pip install --upgrade -e .
+python -m pip install --upgrade -e .
 
 conda list
 
