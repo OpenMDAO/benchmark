@@ -65,22 +65,22 @@ if ! conda env list | grep miso_test; then
   conda create -q -y -n miso_test python=3.10 cython swig
   conda activate miso_test
 
-  # conda install sysroot_linux-64 gxx_linux-64 libgcc gfortran metis hypre openmpi-mpicc
+  # conda install sysroot_linux-64 gxx_linux-64 libgcc gfortran metis hypre openmpi-mpicc -q -y
   # export METIS_DIR=$CONDA_PREFIX
   # export HYPRE_DIR=$CONDA_PREFIX
   # export MPICC=$CONDA_PREFIX/bin/mpicc
   # export MPICXX=$CONDA_PREFIX/bin/mpicxx
 
   if [[ "$MODULE" == "module" ]]; then
-    conda install metis
+    conda install metis -q -y
   fi
 
-  pip install --upgrade pip
+  python -m pip install --upgrade pip
 
-  pip install mpi4py mkdocs
-else
-  conda activate miso_test
+  python -m pip install mpi4py mkdocs
 fi
+
+conda activate miso_test
 
 if conda list | grep metis; then
   export METIS_DIR=$CONDA_PREFIX
@@ -254,6 +254,16 @@ make build_tests $J
 ctest --output-on-failure
 make install
 
+echo "#####################################"
+echo "make sure we are using correct python"
+echo "#####################################"
+
+conda info
+conda list
+which python
+export PATH=$CONDA_PREFIX/bin:$PATH
+which python
+
 echo "#########################"
 echo "Install OpenMDAO"
 echo "#########################"
@@ -265,14 +275,14 @@ fi
 
 cd OpenMDAO
 git pull
-pip install --upgrade -e .[test]
+python -m pip install --upgrade -e .[test]
 
 echo "#########################"
 echo "Test miso python wrapper"
 echo "#########################"
 cd $WD
 cd miso
-pip install --upgrade -e .
+python -m pip install --upgrade -e .
 
 conda list
 
