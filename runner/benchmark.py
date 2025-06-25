@@ -1302,157 +1302,158 @@ class BenchmarkRunner(object):
         run_name = project["name"] + "_" + timestr
         init_log_file(run_name)
 
-        # remove any previous repo_dir for this project so we start fresh
-        remove_dir(conf["repo_dir"])
+        try:
+            # remove any previous repo_dir for this project so we start fresh
+            remove_dir(conf["repo_dir"])
 
-        # determine if a new benchmark run is needed, this may be due to the
-        # project repo or a trigger repo being updated or the `force` option
-        triggered_by, current_commits = self.check_triggers()
-        if force:
-            triggered_by.append('force')
+            # determine if a new benchmark run is needed, this may be due to the
+            # project repo or a trigger repo being updated or the `force` option
+            triggered_by, current_commits = self.check_triggers()
+            if force:
+                triggered_by.append('force')
 
-        # if benchmark run is triggered:
-        # - check to see if this set of commits has failed
-        # - if commits have not failed or forced, run unit tests
-        # - run the benchmark
-        # - save benchmark results to database
-        # - clean up env and repos
-        # - back up database
-        if triggered_by:
-            logging.info("Benchmark triggered by updates to: %s", str(triggered_by))
-            trigger_msg = self.get_trigger_message(triggered_by, current_commits)
+            # if benchmark run is triggered:
+            # - check to see if this set of commits has failed
+            # - if commits have not failed or forced, run unit tests
+            # - run the benchmark
+            # - save benchmark results to database
+            # - clean up env and repos
+            # - back up database
+            if triggered_by:
+                logging.info("Benchmark triggered by updates to: %s", str(triggered_by))
+                trigger_msg = self.get_trigger_message(triggered_by, current_commits)
 
-            # if unit testing fails, the current set of commits will be recorded in fail_file
-            fail_file = os.path.join(conf['working_dir'], project["name"]+".fail")
+                # if unit testing fails, the current set of commits will be recorded in fail_file
+                fail_file = os.path.join(conf['working_dir'], project["name"]+".fail")
 
-            forced = 'force' in triggered_by
+                forced = 'force' in triggered_by
 
-            good_commits = self.check_good_commits(current_commits, fail_file)
+                good_commits = self.check_good_commits(current_commits, fail_file)
 
-            if good_commits or forced:
+                if good_commits or forced:
 
-                # make sure our working repo dir exists
-                repo_dir = conf["repo_dir"]
-                if not os.path.exists(repo_dir):
-                    os.makedirs(repo_dir)
+                    # make sure our working repo dir exists
+                    repo_dir = conf["repo_dir"]
+                    if not os.path.exists(repo_dir):
+                        os.makedirs(repo_dir)
 
-                # create script & run (in the repo directory)
-                with cd(repo_dir):
-                    repo_name = project["repository"].split('/')[-1]
-                    if '#' in repo_name:
-                        repo_name = repo_name.split('#')[0]
+                    # create script & run (in the repo directory)
+                    with cd(repo_dir):
+                        repo_name = project["repository"].split('/')[-1]
+                        if '#' in repo_name:
+                            repo_name = repo_name.split('#')[0]
 
-                    notify = project.get("notify", ["!channel"])
+                        notify = project.get("notify", ["!channel"])
 
-                    # reset flag
-                    good_commits = True
+                        # reset flag
+                        good_commits = True
 
-                    # run tests and benchmarks
-                    script = project.get("script")
-                    if script:
-                        # script has been provided, just run it and check return code
-                        logging.info("Running predefined script: %s" % script)
-                        rc, out, err = execute_cmd(script, shell=True, merge_streams=True)
-                        if rc:
-                            good_commits = False
-                            self.slack.post_message("%s However, testing failed..." % trigger_msg, notify=notify)
+                        # run tests and benchmarks
+                        script = project.get("script")
+                        if script:
+                            # script has been provided, just run it and check return code
+                            logging.info("Running predefined script: %s" % script)
+                            rc, out, err = execute_cmd(script, shell=True, merge_streams=True)
+                            if rc:
+                                good_commits = False
+                                self.slack.post_message("%s However, testing failed..." % trigger_msg, notify=notify)
+                            else:
+                                self.slack.post_message("%s Testing was successful." % trigger_msg)
+                            if out:
+                                test_log = os.path.join(repo_name, "%s.txt" % run_name)
+                                with open(test_log, "w") as f:
+                                    f.write(out)
+                                self.slack.post_file(test_log)
                         else:
-                            self.slack.post_message("%s Testing was successful." % trigger_msg)
-                        if out:
-                            test_log = os.path.join(repo_name, "%s.txt" % run_name)
-                            with open(test_log, "w") as f:
-                                f.write(out)
-                            self.slack.post_file(test_log)
-                    else:
-                        # generate script and then run it
-                        script = RunScript(run_name, project, unit_tests, keep_env)
-                        logging.info("Running generated script: %s" % script)
-                        script.execute()
+                            # generate script and then run it
+                            script = RunScript(run_name, project, unit_tests, keep_env)
+                            logging.info("Running generated script: %s" % script)
+                            script.execute()
 
-                        # check for failed unit tests
-                        if unit_tests:
-                            test_log = os.path.join(repo_name, "%s-test.log" % run_name)
-                            logging.info("unit test results file: %s", test_log)
-                            if not os.path.exists(test_log):
-                                good_commits = False
-                                logging.error("unit test results file (%s) was not found.  something has gone wrong." % test_log)
-                                logging.info("files: %s", str(os.listdir()))
-                                good_commits = False
-                                if self.slack:
-                                    self.slack.post_message("%s However, unit test results file was not found..." % trigger_msg, notify=notify)
-                            else:
-                                for line in open(test_log):
-                                    if line.startswith("Failed:"):
-                                        logging.info("test failures (%s): %s", line.split()[1], line)
-                                        test_failures = line.split()[1]
-                                        if test_failures != "0":
-                                            good_commits = False
-                                            if self.slack:
-                                                logging.error("%s However, %s unit test(s) failed...", trigger_msg, test_failures)
-                                                self.slack.post_message("%s However, %s unit test(s) failed..." % (trigger_msg, test_failures), notify=notify)
-                                                self.slack.post_file(test_log)
+                            # check for failed unit tests
+                            if unit_tests:
+                                test_log = os.path.join(repo_name, "%s-test.log" % run_name)
+                                logging.info("unit test results file: %s", test_log)
+                                if not os.path.exists(test_log):
+                                    good_commits = False
+                                    logging.error("unit test results file (%s) was not found.  something has gone wrong." % test_log)
+                                    logging.info("files: %s", str(os.listdir()))
+                                    good_commits = False
+                                    if self.slack:
+                                        self.slack.post_message("%s However, unit test results file was not found..." % trigger_msg, notify=notify)
+                                else:
+                                    for line in open(test_log):
+                                        if line.startswith("Failed:"):
+                                            logging.info("test failures (%s): %s", line.split()[1], line)
+                                            test_failures = line.split()[1]
+                                            if test_failures != "0":
+                                                good_commits = False
+                                                if self.slack:
+                                                    logging.error("%s However, %s unit test(s) failed...", trigger_msg, test_failures)
+                                                    self.slack.post_message("%s However, %s unit test(s) failed..." % (trigger_msg, test_failures), notify=notify)
+                                                    self.slack.post_file(test_log)
 
-                        # check for failed benchmarks
-                        if good_commits or not unit_tests:
-                            benchmark_log = os.path.join(repo_name, "%s-bm.log" % run_name)
-                            logging.info("benchmark results file: %s", benchmark_log)
-                            if not os.path.exists(benchmark_log):
-                                logging.error("benchmark results file (%s) not found.  something has gone wrong." % benchmark_log)
-                                logging.info("files: %s", str(os.listdir()))
-                                good_commits = False
-                                if self.slack:
-                                    self.slack.post_message("%s However, benchmark results file was not found..." % trigger_msg, notify=notify)
+                            # check for failed benchmarks
+                            if good_commits or not unit_tests:
+                                benchmark_log = os.path.join(repo_name, "%s-bm.log" % run_name)
+                                logging.info("benchmark results file: %s", benchmark_log)
+                                if not os.path.exists(benchmark_log):
+                                    logging.error("benchmark results file (%s) not found.  something has gone wrong." % benchmark_log)
+                                    logging.info("files: %s", str(os.listdir()))
+                                    good_commits = False
+                                    if self.slack:
+                                        self.slack.post_message("%s However, benchmark results file was not found..." % trigger_msg, notify=notify)
+                                else:
+                                    for line in open(benchmark_log):
+                                        if line.startswith("Failed:"):
+                                            logging.info("benchmark failures (%s): %s", line.split()[1], line)
+                                            benchmark_fails = line.split()[1]
+                                            if benchmark_fails != "0":
+                                                good_commits = False
+                                                if self.slack:
+                                                    logging.error("%s However, %s benchmark(s) failed...", trigger_msg, benchmark_fails)
+                                                    self.slack.post_message("%s However, %s benchmark(s) failed..." % (trigger_msg, benchmark_fails), notify=notify)
+                                                    self.slack.post_file(benchmark_log)
+
+                        if good_commits:
+                            # get list of installed dependencies
+                            installed_deps = {}
+                            with conda(run_name):
+                                rc, out, err = execute_cmd("conda list")
+                            for line in out.split('\n'):
+                                name_ver = line.split(" ", 1)
+                                if len(name_ver) == 2:
+                                    installed_deps[name_ver[0]] = name_ver[1]
+
+                            # update database with benchmark resuls
+                            csv_file = os.path.join(repo_name, "%s.csv" % run_name)
+                            if os.path.exists(csv_file) and os.path.getsize(csv_file) > 0:
+                                db.add_benchmark_data(current_commits, csv_file, installed_deps)
+                                self.post_results(trigger_msg)
+                                if conf["remove_csv"]:
+                                    os.remove(csv_file)
                             else:
-                                for line in open(benchmark_log):
-                                    if line.startswith("Failed:"):
-                                        logging.info("benchmark failures (%s): %s", line.split()[1], line)
-                                        benchmark_fails = line.split()[1]
-                                        if benchmark_fails != "0":
-                                            good_commits = False
-                                            if self.slack:
-                                                logging.error("%s However, %s benchmark(s) failed...", trigger_msg, benchmark_fails)
-                                                self.slack.post_message("%s However, %s benchmark(s) failed..." % (trigger_msg, benchmark_fails), notify=notify)
-                                                self.slack.post_file(benchmark_log)
+                                # no benchmarks, just record the commits that passed testing
+                                timestamp = time.time()
+                                db.update_commits(current_commits, timestamp)
+                                if not project.get("script"):
+                                    msg = "%s Unit testing was successful (no benchmarks found)."
+                                    self.slack.post_message(msg % trigger_msg)
+                        else:
+                            write_json(fail_file, current_commits)
+
 
                     if good_commits:
-                        # get list of installed dependencies
-                        installed_deps = {}
-                        with conda(run_name):
-                            rc, out, err = execute_cmd("conda list")
-                        for line in out.split('\n'):
-                            name_ver = line.split(" ", 1)
-                            if len(name_ver) == 2:
-                                installed_deps[name_ver[0]] = name_ver[1]
-
-                        # update database with benchmark resuls
-                        csv_file = os.path.join(repo_name, "%s.csv" % run_name)
-                        if os.path.exists(csv_file) and os.path.getsize(csv_file) > 0:
-                            db.add_benchmark_data(current_commits, csv_file, installed_deps)
-                            self.post_results(trigger_msg)
-                            if conf["remove_csv"]:
-                                os.remove(csv_file)
+                        # if benchmarks didn't fail but there are no commits in database, then
+                        # no benchmarks are defined so don't run again for this set of commits
+                        if not db.get_last_commit(project["repository"]):
+                            write_json(fail_file, current_commits)
                         else:
-                            # no benchmarks, just record the commits that passed testing
-                            timestamp = time.time()
-                            db.update_commits(current_commits, timestamp)
-                            if not project.get("script"):
-                                msg = "%s Unit testing was successful (no benchmarks found)."
-                                self.slack.post_message(msg % trigger_msg)
-                    else:
-                        write_json(fail_file, current_commits)
-
-
-                if good_commits:
-                    # if benchmarks didn't fail but there are no commits in database, then
-                    # no benchmarks are defined so don't run again for this set of commits
-                    if not db.get_last_commit(project["repository"]):
-                        write_json(fail_file, current_commits)
-                    else:
-                        # back up and transfer database
-                        db.backup()
-
-        # close the log file for this run
-        close_log_file()
+                            # back up and transfer database
+                            db.backup()
+        finally:
+            # close the log file for this run
+            close_log_file()
 
     def check_triggers(self):
         """
