@@ -44,6 +44,8 @@ else
   export J=''
 fi
 
+export J=''
+
 export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
 export OMPI_MCA_rmaps_base_oversubscribe=1
 export OMPI_MCA_btl=^openib
