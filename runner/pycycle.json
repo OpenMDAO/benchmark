@@ -26,6 +26,8 @@
         "gfortran"
     ],
 
+    "extras": "[all]",
+
     "postinstall": [
         "pip install git+https://github.com/OpenMDAO/build_pyoptsparse",
         "build_pyoptsparse -b v2.13.0 -s ~/dev/snopt7/src"
