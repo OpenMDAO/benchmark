@@ -38,7 +38,7 @@ find $BENCHMARK_DIR/logs -name "*.log" -type f -mtime +10 -exec rm -f {} \;
 #
 # delete envs older than 10 days
 #
-find $HOME/.conda/envs -type d -mtime +10 -exec rm -rf {} \;
+#find $HOME/.conda/envs -type d -mtime +10 -exec rm -rf {} \;
 
 #
 # delete temporary files older than 3 days
