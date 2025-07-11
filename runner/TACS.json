@@ -22,7 +22,7 @@
         "gxx_linux-64=9.4.0",
         "python=3.10",
         "numpy",
-        "scipy"
+        "scipy=1.15"
     ],
 
     "conda-forge": [

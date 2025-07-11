@@ -17,7 +17,7 @@
         "python=3.11",
         "gfortran=12",
         "numpy=1.23",
-        "scipy",
+        "scipy=1.15",
         "six"
     ],
 
