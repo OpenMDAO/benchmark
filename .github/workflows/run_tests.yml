@@ -3,8 +3,8 @@ name: Run Tests
 
 on:
   # # Run the workflow nightly at 0000 UTC
-  # schedule:
-  #   - cron: '0 0 * * *'
+  schedule:
+    - cron: '0 0 * * *'
 
   # Allow running the workflow manually from the Actions tab
   # All jobs are excluded by default, desired jobs must be selected
