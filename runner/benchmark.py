@@ -1454,7 +1454,7 @@ class BenchmarkRunner(object):
 
                     if os.path.exists(fail_file):
                         try:
-                            upload([fail_file], conf["data_dir"])
+                            upload([fail_file], "/".join([conf["data"]["upload"], conf["data_dir"]])
                         except KeyError:
                             pass  # remote backup not configured
                         except:
