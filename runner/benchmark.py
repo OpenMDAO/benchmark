@@ -1441,6 +1441,13 @@ class BenchmarkRunner(object):
                                     self.slack.post_message(msg % trigger_msg)
                         else:
                             write_json(fail_file, current_commits)
+                            try:
+                                upload(fail_file, conf["data_dir"])
+                            except KeyError:
+                                pass  # remote backup not configured
+                            except:
+                                logging.error("ERROR attempting to upload fail file")
+                                logging.error(traceback.format_exc())
 
 
                     if good_commits:
