@@ -1451,6 +1451,15 @@ class BenchmarkRunner(object):
                         else:
                             # back up and transfer database
                             db.backup()
+
+                    if os.path.exists(fail_file):
+                        try:
+                            upload([fail_file], "/".join([conf["data"]["upload"], conf["data_dir"]]))
+                        except KeyError:
+                            pass  # remote backup not configured
+                        except:
+                            logging.error("ERROR attempting to upload fail file")
+                            logging.error(traceback.format_exc())
         finally:
             # close the log file for this run
             close_log_file()

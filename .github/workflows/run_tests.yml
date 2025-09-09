@@ -98,6 +98,7 @@ jobs:
           wget -q openmdao.org/benchmark/data/$PROJECT_NAME.db  || echo "No data found for $PROJECT_NAME"
           cd ..
           ls -l data
+          wget -q openmdao.org/benchmark/data/$PROJECT_NAME.fail  || echo "No fail file found for $PROJECT_NAME"
 
           echo "============================================================="
           echo "Fetch SNOPT source if needed"
